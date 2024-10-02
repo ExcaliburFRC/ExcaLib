@@ -9,17 +9,15 @@ import excalib.math.Vector2D;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
-
-import static excalib.swerve.Constants.*;
-
 /**
  * A class representing a swerve subsystem
  *
  * @author Yoav Cohen & Itay Keller
  */
 public class Swerve extends SubsystemBase {
-    private static Swerve m_instance;
-
+    private final double CYCLE_TIME = 1 / 50.0;
+    static Swerve m_instance;
+    private final SwerveConfigurator.KinematicsConfig m_kinematicsConfig;
     private final ModulesHolder m_MODULES;
 
     /**
@@ -27,8 +25,10 @@ public class Swerve extends SubsystemBase {
      *
      * @param modules The ModulesHolder
      */
-    private Swerve(ModulesHolder modules) {
+    Swerve(ModulesHolder modules, SwerveConfigurator.KinematicsConfig kinematicsConfig)
+    {
         m_MODULES = modules;
+        m_kinematicsConfig = kinematicsConfig;
     }
 
     /**
@@ -37,9 +37,6 @@ public class Swerve extends SubsystemBase {
      * @return Swerve subsystem
      */
     public static Swerve getInstance() {
-        if (m_instance == null) {
-            m_instance = new Swerve(null);
-        }
         return m_instance;
     }
 
@@ -121,8 +118,8 @@ public class Swerve extends SubsystemBase {
      */
     private Vector2D applyForwardLimit(Vector2D wantedAcceleration) {
         double maxAcceleration =
-                MAX_FORWARD_ACCELERATION_MPSS *
-                        (1 - (getVelocity().getDistance() / MAX_VELOCITY_MPS));
+                m_kinematicsConfig.MAX_FORWARD_ACCELERATION_MPSS *
+                        (1 - (getVelocity().getDistance() / m_kinematicsConfig.MAX_VELOCITY_MPS));
 
         Vector2D rotatedWantedAcceleration = wantedAcceleration.rotate(
                 wantedAcceleration.getDirection().minus(getVelocity().getDirection()));
@@ -142,8 +139,8 @@ public class Swerve extends SubsystemBase {
      * @return wanted acceleration limited by tilt acceleration limit
      */
     private Vector2D applyTiltLimit(Vector2D wantedAcceleration) {
-        double frontAcceleration = minSize(wantedAcceleration.getX(), MAX_FRONT_ACCELERATION);
-        double sideAcceleration = minSize(wantedAcceleration.getY(), MAX_SIDE_ACCELERATION);
+        double frontAcceleration = minSize(wantedAcceleration.getX(), m_kinematicsConfig.MAX_FRONT_ACCELERATION);
+        double sideAcceleration = minSize(wantedAcceleration.getY() ,m_kinematicsConfig.MAX_SIDE_ACCELERATION);
         return new Vector2D(frontAcceleration, sideAcceleration);
     }
 
@@ -155,7 +152,7 @@ public class Swerve extends SubsystemBase {
      */
     private Vector2D applySkidLimit(Vector2D wantedAcceleration) {
         return new Vector2D(
-                minSize(wantedAcceleration.getDistance(), MAX_SKID_ACCELERATION_MPSS),
+                minSize(wantedAcceleration.getDistance(), m_kinematicsConfig.MAX_SKID_ACCELERATION_MPSS),
                 wantedAcceleration.getDirection());
     }
 
