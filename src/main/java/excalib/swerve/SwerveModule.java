@@ -3,15 +3,13 @@ package excalib.swerve;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import excalib.math.Vector2D;
+import excalib.math.control.ContinuousSoftLimit;
 import excalib.math.control.Gains;
 import excalib.math.control.motor.Motor;
 import excalib.mechanisms.fly_wheel.FlyWheel;
 import excalib.mechanisms.turret.Turret;
 
 import java.util.function.DoubleSupplier;
-
-import static excalib.swerve.Constants.MAX_MODULE_VELOCITY;
-import static excalib.swerve.Constants.WHEEL_RADIUS;
 
 /**
  * A class representing a swerve module
@@ -22,6 +20,7 @@ public class SwerveModule {
     private final FlyWheel m_driveWheel;
     private final Turret m_turret;
     private final Translation2d m_MODULE_LOCATION;
+    private final double m_MAX_VEL;
 
     /**
      * A constructor for the SwerveModule
@@ -31,10 +30,11 @@ public class SwerveModule {
      * @param angleGains    the rotation gains
      * @param PIDtolerance  the tolerance of the PID for the rotating motor
      */
-    public SwerveModule(Motor driveMotor, Motor rotationMotor, Gains angleGains, double PIDtolerance, Translation2d moduleLocation, DoubleSupplier angleSupplier) {
-        m_driveWheel = new FlyWheel(driveMotor, WHEEL_RADIUS);
-        m_turret = new Turret(rotationMotor, null, angleGains, PIDtolerance, angleSupplier);
+    public SwerveModule(Motor driveMotor, Motor rotationMotor, Gains angleGains, double PIDtolerance, Translation2d moduleLocation, DoubleSupplier angleSupplier, double radius, double maxVel) {
+        m_driveWheel = new FlyWheel(driveMotor, radius);
+        m_turret = new Turret(rotationMotor, new ContinuousSoftLimit(() -> Double.NEGATIVE_INFINITY, () -> Double.POSITIVE_INFINITY), angleGains, PIDtolerance, angleSupplier);
         m_MODULE_LOCATION = moduleLocation;
+        m_MAX_VEL = maxVel;
     }
 
     double getVelocityRatioLimit(Vector2D translationVelocity, double omegaRadPerSec) {
@@ -43,7 +43,7 @@ public class SwerveModule {
                 m_MODULE_LOCATION.getAngle().rotateBy(new Rotation2d(Math.PI / 2))
         );
         Vector2D sigmaVel = translationVelocity.plus(rotationVector);
-        return sigmaVel.getDistance() / MAX_MODULE_VELOCITY;
+        return sigmaVel.getDistance() / m_MAX_VEL;
     }
 
     void setVelocity(

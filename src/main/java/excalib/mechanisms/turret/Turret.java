@@ -20,6 +20,7 @@ public final class Turret extends Mechanism {
     private final PIDController m_anglePIDcontroller;
     private final SimpleMotorFeedforward m_angleFFcontroller;
     private final DoubleSupplier m_POSITION_SUPPLIER;
+
     public Turret(Motor motor, ContinuousSoftLimit rotationLimit, Gains angleGains, double PIDtolerance, DoubleSupplier positionSupplier) {
         m_motor = motor;
         m_rotationLimit = rotationLimit;
@@ -32,23 +33,12 @@ public final class Turret extends Mechanism {
     }
 
     public Command setPosition(Rotation2d wantedPosition, SubsystemBase requirements) {
-        double smartSetPoint = m_rotationLimit != null ?
-                m_rotationLimit.getSetPoint(
-                        m_POSITION_SUPPLIER.getAsDouble(),
-                        wantedPosition.getRadians()
-                ) :
-                wantedPosition.getRadians();
+        double smartSetPoint = m_rotationLimit.getSetPoint(m_POSITION_SUPPLIER.getAsDouble(), wantedPosition.getRadians());
         double pid = m_anglePIDcontroller.calculate(smartSetPoint);
         double ff = m_angleFFcontroller.calculate(pid);
 
-        return new FunctionalCommand(
-                () -> {
-                },
-                () -> m_motor.setVoltage(pid + ff),
-                interrupt -> m_motor.stopMotor(),
-                () -> false,
-                requirements
-        );
+        return new FunctionalCommand(() -> {
+        }, () -> m_motor.setVoltage(pid + ff), interrupt -> m_motor.stopMotor(), () -> false, requirements);
     }
 
     public Rotation2d getPosition() {
