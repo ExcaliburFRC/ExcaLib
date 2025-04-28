@@ -52,7 +52,6 @@ public class PhotonAprilTagsCamera implements Logged {
         return new PhotonPipelineResult();
     }
 
-
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
         List<PhotonPipelineResult> unreadResults = camera.getAllUnreadResults();
 
