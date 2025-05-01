@@ -19,6 +19,8 @@ import frc.excalib.additional_utilities.Elastic;
 import frc.excalib.control.gains.SysidConfig;
 import frc.excalib.control.imu.IMU;
 import frc.excalib.control.math.Vector2D;
+import frc.excalib.control.motor.controllers.SparkMaxMotor;
+import frc.excalib.control.motor.controllers.TalonFXMotor;
 import frc.excalib.slam.mapper.Odometry;
 import frc.excalib.slam.mapper.PhotonAprilTagsCamera;
 import monologue.Logged;
@@ -31,6 +33,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import static com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless;
 import static edu.wpi.first.apriltag.AprilTagFields.*;
 import static frc.excalib.additional_utilities.Elastic.Notification.NotificationLevel.WARNING;
 import static frc.robot.SwerveConstants.*;
@@ -117,12 +120,10 @@ public class Swerve extends SubsystemBase implements Logged {
                 omegaRadPerSec
         ),
                 new RunCommand(
-                        () -> {
-                            desiredChassisSpeeds = new ChassisSpeeds(
-                                    adjustedVelocitySupplier.get().getX(),
-                                    adjustedVelocitySupplier.get().getY(),
-                                    omegaRadPerSec.getAsDouble());
-                        }
+                        () -> desiredChassisSpeeds = new ChassisSpeeds(
+                                adjustedVelocitySupplier.get().getX(),
+                                adjustedVelocitySupplier.get().getY(),
+                                omegaRadPerSec.getAsDouble())
                 )
         );
         driveCommand.setName("Drive Command");
@@ -358,6 +359,7 @@ public class Swerve extends SubsystemBase implements Logged {
         }
 
         // Configure AutoBuilder last
+        assert config != null;
         AutoBuilder.configure(
                 this::getPose2D, // Robot pose supplier
                 this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
@@ -429,6 +431,66 @@ public class Swerve extends SubsystemBase implements Logged {
         return dynamic ?
                 selectedModule.angleSysIdDynamic(dir, this, sysidConfig)
                 : selectedModule.angleSysIdQuas(dir, this, sysidConfig);
+    }
+
+    public static Swerve configureSwerve(Pose2d initialPose) {
+        return new Swerve(
+                new ModulesHolder(
+                        new SwerveModule(
+                                new TalonFXMotor(FRONT_LEFT_DRIVE_ID, SWERVE_CANBUS),
+                                new SparkMaxMotor(FRONT_LEFT_ROTATION_ID, kBrushless),
+                                SWERVE_DRIVE_MODULE_GAINS,
+                                SWERVE_ROTATION_MODULE_GAINS,
+                                PID_TOLERANCE,
+                                FRONT_LEFT_TRANSLATION,
+                                () -> FRONT_LEFT_ABS_ENCODER.getAbsolutePosition().getValueAsDouble() * 2 * Math.PI,
+                                MAX_MODULE_VEL,
+                                VELOCITY_CONVERSION_FACTOR,
+                                POSITION_CONVERSION_FACTOR,
+                                ROTATION_VELOCITY_CONVERSION_FACTOR
+                        ),
+                        new SwerveModule(
+                                new TalonFXMotor(FRONT_RIGHT_DRIVE_ID, SWERVE_CANBUS),
+                                new SparkMaxMotor(FRONT_RIGHT_ROTATION_ID, kBrushless),
+                                SWERVE_DRIVE_MODULE_GAINS,
+                                SWERVE_ROTATION_MODULE_GAINS,
+                                PID_TOLERANCE,
+                                FRONT_RIGHT_TRANSLATION,
+                                () -> FRONT_RIGHT_ABS_ENCODER.getAbsolutePosition().getValueAsDouble() * 2 * Math.PI,
+                                MAX_MODULE_VEL,
+                                VELOCITY_CONVERSION_FACTOR,
+                                POSITION_CONVERSION_FACTOR,
+                                ROTATION_VELOCITY_CONVERSION_FACTOR
+                        ),
+                        new SwerveModule(
+                                new TalonFXMotor(BACK_LEFT_DRIVE_ID, SWERVE_CANBUS),
+                                new SparkMaxMotor(BACK_LEFT_ROTATION_ID, kBrushless),
+                                SWERVE_DRIVE_MODULE_GAINS,
+                                SWERVE_ROTATION_MODULE_GAINS,
+                                PID_TOLERANCE,
+                                BACK_LEFT_TRANSLATION,
+                                () -> BACK_LEFT_ABS_ENCODER.getAbsolutePosition().getValueAsDouble() * 2 * Math.PI,
+                                MAX_MODULE_VEL,
+                                VELOCITY_CONVERSION_FACTOR,
+                                POSITION_CONVERSION_FACTOR,
+                                ROTATION_VELOCITY_CONVERSION_FACTOR
+                        ),
+                        new SwerveModule(
+                                new TalonFXMotor(BACK_RIGHT_DRIVE_ID, SWERVE_CANBUS),
+                                new SparkMaxMotor(BACK_RIGHT_ROTATION_ID, kBrushless),
+                                SWERVE_DRIVE_MODULE_GAINS,
+                                SWERVE_ROTATION_MODULE_GAINS,
+                                PID_TOLERANCE,
+                                BACK_RIGHT_TRANSLATION,
+                                () -> BACK_RIGHT_ABS_ENCODER.getAbsolutePosition().getValueAsDouble() * 2 * Math.PI,
+                                MAX_MODULE_VEL,
+                                VELOCITY_CONVERSION_FACTOR,
+                                POSITION_CONVERSION_FACTOR,
+                                ROTATION_VELOCITY_CONVERSION_FACTOR
+                        )),
+                GYRO,
+                initialPose
+        );
     }
 
     @Override
