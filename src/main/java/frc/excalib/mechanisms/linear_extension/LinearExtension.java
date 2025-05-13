@@ -26,7 +26,7 @@ public class LinearExtension extends Mechanism {
         m_positionSupplier = positionSupplier;
         m_angleSupplier = angleSupplier;
         m_gains = gains;
-        m_PIDController = new PIDController(gains.kp, gains.ki, gains.kd);
+        m_PIDController = gains.getPIDcontroller();
         m_constraints = constraints;
         m_tolerance = tolerance;
     }

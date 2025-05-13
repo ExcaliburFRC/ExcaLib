@@ -127,7 +127,7 @@ public class Gains {
     }
 
 
-    public <FF extends FeedForwardGainsSetter> FF applyGains(FF ff){
+    public <GenericFF extends FeedForwardGainsSetter> GenericFF applyGains(GenericFF ff){
         ff.setKv(this.kv);
         ff.setKs(this.ks);
         ff.setKa(this.ka);

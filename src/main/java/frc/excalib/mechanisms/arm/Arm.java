@@ -31,7 +31,7 @@ public class Arm extends Mechanism {
         m_kg = gains.kg;
         m_kv = gains.kv;
         m_ks = gains.ks;
-        m_PIDController = new PIDController(gains.kp, gains.ki, gains.kd);
+        m_PIDController = gains.getPIDcontroller();
         m_mass = mass;
     }
 
