@@ -243,15 +243,8 @@ public class MotorGroup implements Motor {
         }
     }
 
-    protected void setDifferentialVoltage(double motorAvoltage, double motorBvoltage) {
-        // this check isn't necessary right now, but might be in the future
-        if (!(this instanceof DifferentialMotor)) {
-            System.out.println("setDifferentialVoltage only works with a DifferentialMotor");
-            return;
-        }
-
-
-        m_motors[0].setVoltage(motorAvoltage);
-        m_motors[1].setVoltage(motorBvoltage);
+    protected void setDifferentialVoltage(double voltageA, double voltageB) {
+        m_motors[0].setVoltage(voltageA);
+        m_motors[1].setVoltage(voltageB);
     }
 }

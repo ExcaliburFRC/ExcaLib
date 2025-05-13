@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.excalib.control.gains.SysidConfig;
 import frc.excalib.control.motor.Motor;
+import frc.excalib.control.motor.motorType.DifferentialMotor;
 import frc.excalib.control.motor.motor_specs.IdleState;
 import monologue.Logged;
 
@@ -53,6 +54,14 @@ public class Mechanism implements Logged {
      */
     public void setVoltage(double voltage) {
         m_motor.setVoltage(voltage);
+    }
+
+    protected void setDifferentialVoltage(double voltageA, double voltageB){
+        if (!(this.m_motor instanceof DifferentialMotor)) {
+            System.out.println("setDifferentialVoltage only works with a DifferentialMotor");
+            return;
+        }
+        ((DifferentialMotor) this.m_motor).setDifferentialVoltage(voltageA, voltageB);
     }
 
     /**
