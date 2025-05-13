@@ -2,7 +2,6 @@ package frc.excalib.control.gains;
 
 import edu.wpi.first.math.controller.PIDController;
 import frc.excalib.control.GenericFF.FeedForwardGainsSetter;
-import frc.excalib.control.GenericFF.FeedforwardGainsSetter;
 
 
 /**

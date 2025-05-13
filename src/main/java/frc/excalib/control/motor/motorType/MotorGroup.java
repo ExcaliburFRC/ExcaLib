@@ -1,4 +1,4 @@
-package frc.excalib.control.motor.controllers;
+package frc.excalib.control.motor.motorType;
 
 import frc.excalib.control.motor.Motor;
 import frc.excalib.control.motor.motor_specs.DirectionState;
@@ -9,7 +9,6 @@ import frc.excalib.control.motor.motor_specs.IdleState;
  * Implements the Motor interface to provide unified control over multiple motors.
  */
 public class MotorGroup implements Motor {
-
     private final Motor[] m_motors;
 
     /**
@@ -174,7 +173,7 @@ public class MotorGroup implements Motor {
      * Sets a soft limit for all motors in the group.
      *
      * @param directionState The direction state for the limit.
-     * @param limit The soft limit value.
+     * @param limit          The soft limit value.
      */
     @Override
     public void setSoftLimit(DirectionState directionState, float limit) {
@@ -223,7 +222,7 @@ public class MotorGroup implements Motor {
      * Sets the current limits for all motors in the group.
      *
      * @param stallLimit The stall current limit.
-     * @param freeLimit The free current limit.
+     * @param freeLimit  The free current limit.
      */
     @Override
     public void setCurrentLimit(int stallLimit, int freeLimit) {
@@ -242,5 +241,17 @@ public class MotorGroup implements Motor {
         for (Motor motor : m_motors) {
             motor.setMotorPosition(position);
         }
+    }
+
+    protected void setDifferentialVoltage(double motorAvoltage, double motorBvoltage) {
+        // this check isn't necessary right now, but might be in the future
+        if (!(this instanceof DifferentialMotor)) {
+            System.out.println("setDifferentialVoltage only works with a DifferentialMotor");
+            return;
+        }
+
+
+        m_motors[0].setVoltage(motorAvoltage);
+        m_motors[1].setVoltage(motorBvoltage);
     }
 }
