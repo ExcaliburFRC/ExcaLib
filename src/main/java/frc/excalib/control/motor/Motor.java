@@ -1,4 +1,4 @@
-package frc.excalib.control.motor.controllers;
+package frc.excalib.control.motor;
 
 import frc.excalib.control.motor.motor_specs.DirectionState;
 import frc.excalib.control.motor.motor_specs.IdleState;

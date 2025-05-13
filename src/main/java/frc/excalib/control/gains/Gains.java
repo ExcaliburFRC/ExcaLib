@@ -1,5 +1,10 @@
 package frc.excalib.control.gains;
 
+import edu.wpi.first.math.controller.PIDController;
+import frc.excalib.control.GenericFF.FeedForwardGainsSetter;
+import frc.excalib.control.GenericFF.FeedforwardGainsSetter;
+
+
 /**
  * This class bundles together multiple types of gains, including PID gains and feedforward gains.
  */
@@ -8,6 +13,7 @@ public class Gains {
     public double kp, ki, kd;
     // Feedforward gains: static, gravity, velocity, and acceleration
     public double ks, kg, kv, ka;
+
 
     /**
      * Constructs a Gains object with specified PID and feedforward gains.
@@ -30,6 +36,7 @@ public class Gains {
         this.ka = ka;
     }
 
+
     /**
      * Constructs a Gains object with only PID gains.
      * Feedforward gains are set to 0.
@@ -41,6 +48,7 @@ public class Gains {
     public Gains(double kp, double ki, double kd) {
         this(kp, ki, kd, 0, 0, 0, 0);
     }
+
 
     /**
      * Constructs a Gains object with only feedforward gains.
@@ -55,6 +63,7 @@ public class Gains {
         this(0, 0, 0, ks, kv, ka, kg);
     }
 
+
     /**
      * Constructs a Gains object by combining PID gains and feedforward gains from two separate Gains objects.
      *
@@ -65,12 +74,14 @@ public class Gains {
         this(PIDgains.kp, PIDgains.ki, PIDgains.kd, FFgains.ks, FFgains.kv, FFgains.ka, FFgains.kg);
     }
 
+
     /**
      * Constructs a Gains object with all gains set to 0.
      */
     public Gains() {
         this(0, 0, 0, 0, 0, 0, 0);
     }
+
 
     /**
      * Constructs a Gains object by copying the values from another Gains object.
@@ -80,6 +91,7 @@ public class Gains {
     public Gains(Gains gains) {
         this(gains.kp, gains.ki, gains.kd, gains.ks, gains.kg, gains.kv, gains.ka);
     }
+
 
     /**
      * Sets the PID gains.
@@ -94,6 +106,7 @@ public class Gains {
         this.kd = kd;
     }
 
+
     /**
      * Sets the feedforward gains.
      *
@@ -107,5 +120,20 @@ public class Gains {
         this.kg = kg;
         this.kv = kv;
         this.ka = ka;
+    }
+
+
+    public PIDController getPIDcontroller(){
+        return new PIDController(this.kp, this.ki, this.kd);
+    }
+
+
+    public <FF extends FeedForwardGainsSetter> FF applyGains(FF ff){
+        ff.setKv(this.kv);
+        ff.setKs(this.ks);
+        ff.setKa(this.ka);
+        ff.setKg(this.kg);
+
+        return ff;
     }
 }

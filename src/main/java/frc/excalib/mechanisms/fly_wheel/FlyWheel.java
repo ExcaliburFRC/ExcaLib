@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.excalib.control.gains.Gains;
-import frc.excalib.control.motor.controllers.Motor;
+import frc.excalib.control.motor.Motor;
 import frc.excalib.mechanisms.Mechanism;
 
 import java.util.function.DoubleSupplier;

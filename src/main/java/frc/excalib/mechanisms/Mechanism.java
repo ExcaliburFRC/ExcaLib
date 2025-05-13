@@ -11,7 +11,7 @@ import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.excalib.control.gains.SysidConfig;
-import frc.excalib.control.motor.controllers.Motor;
+import frc.excalib.control.motor.Motor;
 import frc.excalib.control.motor.motor_specs.IdleState;
 import monologue.Logged;
 

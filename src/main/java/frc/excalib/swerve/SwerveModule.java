@@ -12,7 +12,7 @@ import frc.excalib.control.gains.Gains;
 import frc.excalib.control.gains.SysidConfig;
 import frc.excalib.control.limits.ContinuousSoftLimit;
 import frc.excalib.control.math.Vector2D;
-import frc.excalib.control.motor.controllers.Motor;
+import frc.excalib.control.motor.Motor;
 import frc.excalib.mechanisms.fly_wheel.FlyWheel;
 import frc.excalib.mechanisms.turret.Turret;
 import monologue.Logged;
