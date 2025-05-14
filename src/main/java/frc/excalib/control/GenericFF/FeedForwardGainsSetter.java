@@ -8,4 +8,6 @@ public interface FeedForwardGainsSetter {
     void setKv(double kV);
     void setKa(double kA);
     void setKg(double kG);
+    void setValue(double kS, double kV, double kA, double kG);
+
 }
