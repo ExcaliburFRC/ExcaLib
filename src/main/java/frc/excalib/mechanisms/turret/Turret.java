@@ -15,11 +15,16 @@ import frc.excalib.mechanisms.Mechanism;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import static java.lang.Double.NEGATIVE_INFINITY;
+import static java.lang.Double.POSITIVE_INFINITY;
+
 /**
  * A class representing a Turret Mechanism
  */
 public final class Turret extends Mechanism {
     private final ContinuousSoftLimit m_rotationLimit;
+    private final Gains m_gains;
+    private final double m_PIDtolerance;
     private final PIDController m_anglePIDcontroller;
     private final SimpleMotorFeedforward m_angleFFcontroller;
     private final DoubleSupplier m_POSITION_SUPPLIER;
@@ -35,6 +40,8 @@ public final class Turret extends Mechanism {
         super(motor);
         m_rotationLimit = rotationLimit;
 
+        m_gains = angleGains;
+        m_PIDtolerance = PIDtolerance;
         m_anglePIDcontroller = new PIDController(angleGains.kp, angleGains.ki, angleGains.kd);
         m_angleFFcontroller = new SimpleMotorFeedforward(angleGains.ks, angleGains.kv, angleGains.ka);
 
@@ -42,6 +49,14 @@ public final class Turret extends Mechanism {
         m_anglePIDcontroller.enableContinuousInput(-Math.PI, Math.PI);
 
         m_POSITION_SUPPLIER = positionSupplier;
+    }
+
+    public Turret(Motor motor, DoubleSupplier positionSupplier, Turret other) {
+        this(motor, other.m_rotationLimit, other.m_gains, other.m_PIDtolerance, positionSupplier);
+    }
+
+    public Turret(Motor motor, Gains angleGains, double PIDtolerance, DoubleSupplier positionSupplier) {
+        this(motor, new ContinuousSoftLimit(() -> NEGATIVE_INFINITY, () -> POSITIVE_INFINITY), angleGains, PIDtolerance, positionSupplier);
     }
 
     /**
