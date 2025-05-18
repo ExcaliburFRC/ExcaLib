@@ -164,7 +164,10 @@ public class ModulesHolder implements Logged {
      * @return the linear velocity of the robot.
      */
     double getVelocityDistance() {
-        return getVelocity().getDistance();
+        return new Vector2D(
+                m_swerveDriveKinematics.toChassisSpeeds(getStates()).vxMetersPerSecond,
+                m_swerveDriveKinematics.toChassisSpeeds(getStates()).vyMetersPerSecond
+        ).getDistance();
     }
 
     /**

@@ -32,9 +32,9 @@ import static monologue.Annotations.Log;
 public class SwerveMechanism implements Logged {
     private final ModulesHolder m_MODULES;
     private final IMU m_imu;
+    private final SwerveSpecs m_specs;
     private final Odometry m_odometry;
     private ChassisSpeeds m_desiredChassisSpeeds = new ChassisSpeeds();
-    private final SwerveSpecs m_specs;
 
     private final SwerveDriveKinematics m_swerveDriveKinematics;
 
@@ -53,7 +53,6 @@ public class SwerveMechanism implements Logged {
         this.m_imu = imu;
         m_imu.resetIMU();
 
-        // Initialize odometry with the current yaw angle
         this.m_odometry = new Odometry(
                 modules.getSwerveDriveKinematics(),
                 modules.getModulesPositions(),
@@ -84,7 +83,6 @@ public class SwerveMechanism implements Logged {
             boolean withAccLimits,
             SubsystemBase... requirements) {
 
-        // Precompute values to avoid redundant calculations
         Supplier<Vector2D> adjustedVelocitySupplier = () -> {
             Vector2D velocity = getSmartTranslationalVelocitySetPoint(getVelocity(), velocityMPS.get(), withAccLimits);
             if (fieldOriented.getAsBoolean()) {
@@ -123,6 +121,11 @@ public class SwerveMechanism implements Logged {
         m_MODULES.setModulesStates(desiredStates);
     }
 
+    /**
+     * Creates a Command that stops the swerve
+     *
+     * @return A command that stops the swerve
+     */
     public Command stopCommand() {
         return new InstantCommand(m_MODULES::stop);
     }
@@ -210,12 +213,12 @@ public class SwerveMechanism implements Logged {
      *
      * @return The robot's speed as a ChassisSpeeds.
      */
-    @Log.NT(key = "Swerve Measured Chassis Speeds")
+    @Log.NT(key = "Measured Chassis Speeds")
     public ChassisSpeeds getRobotRelativeChassisSpeeds() {
         return m_swerveDriveKinematics.toChassisSpeeds(m_MODULES.getStates());
     }
 
-    @Log.NT(key = "Swerve Desired Chassis Speeds")
+    @Log.NT(key = "Desired Chassis Speeds")
     public ChassisSpeeds getDesiredChassisSpeeds() {
         return m_desiredChassisSpeeds;
     }
@@ -253,7 +256,6 @@ public class SwerveMechanism implements Logged {
         });
     }
 
-
     /**
      * Runs a system identification routine on a specific module's angle.
      *
@@ -286,7 +288,7 @@ public class SwerveMechanism implements Logged {
      * @param dynamic Whether to perform a dynamic or quasistatic test.
      * @return The command to perform the sysid routine.
      */
-    public Command angleSingleSysId(int module, Direction dir, SubsystemBase swerve, SysidConfig sysidConfig, boolean dynamic) {
+    public Command steeringSingleSysId(int module, Direction dir, SubsystemBase swerve, SysidConfig sysidConfig, boolean dynamic) {
         SwerveModule selectedModule;
 
         switch (module) {
