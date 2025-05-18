@@ -1,4 +1,4 @@
-package frc.robot.subsystems.swerve;
+package frc.robot.subsystems.swerve_example;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -11,6 +11,7 @@ import static frc.excalib.swerve.swerve_utils.SwerveModuleType.MK4i_l3;
 public class Constants {
     public static final String SWERVE_CANBUS = "CTRESwerve";
 
+    // Motors & Sensors IDs
     public static final int FRONT_LEFT_DRIVE_ID = 0;
     public static final int FRONT_RIGHT_DRIVE_ID = 0;
     public static final int BACK_RIGHT_DRIVE_ID = 0;
@@ -29,8 +30,10 @@ public class Constants {
     public static final int GYRO_ID = 0;
     public static final Rotation3d GYRO_OFFSET = new Rotation3d();
 
+    // Module Specs
     public static final SwerveModuleType MODULE_TYPE = MK4i_l3;
 
+    // Driving Mechanism Constraints
     public static final double MAX_MODULE_VELOCITY = 0;
     public static final double MAX_MODULE_ACCELERATION = 0;
     public static final double MAX_MODULE_JERK = 0;
@@ -38,6 +41,7 @@ public class Constants {
     public static final int FREE_DRIVING_MODULE_LIMIT = 0;
     public static final Gains DRIVING_MODULE_GAINS = new Gains();
 
+    // Steering Mechanism Constraints
     public static final int STALL_STEERING_MODULE_LIMIT = 0;
     public static final int FREE_STEERING_MODULE_LIMIT = 0;
     public static final Gains STEERING_MODULE_GAINS = new Gains();
@@ -51,6 +55,7 @@ public class Constants {
                     new Translation2d()
             };
 
+    // Swerve Constraints
     public static final double MAX_VELOCITY = 0;
     public static final double MAX_OMEGA_RAD_PER_SEC = 0;
     public static final double MAX_ACC = 0;
@@ -60,6 +65,7 @@ public class Constants {
 
     public static final Pose2d INITIAL_SWERVE_POSITION = new Pose2d();
 
+    // Auto Drive Controllers
     public static final Gains ANGLE_PID_GAINS = new Gains();
     public static final Gains TRANSLATION_PID_GAINS = new Gains();
 }

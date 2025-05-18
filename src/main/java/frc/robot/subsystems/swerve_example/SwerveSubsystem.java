@@ -1,4 +1,4 @@
-package frc.robot.subsystems.swerve;
+package frc.robot.subsystems.swerve_example;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import edu.wpi.first.math.controller.PIDController;
@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 
 import static com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless;
 import static edu.wpi.first.math.geometry.Rotation2d.kPi;
-import static frc.robot.subsystems.swerve.Constants.*;
+import static frc.robot.subsystems.swerve_example.Constants.*;
 
 public class SwerveSubsystem extends SubsystemBase implements Logged {
     private final CANcoder[] m_cancoders;
@@ -48,7 +48,7 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     private Supplier<Rotation2d> m_angleSetpoint;
     private Supplier<Translation2d> m_translationSetpoint;
 
-    private final Trigger m_finishTrigger;
+    private final Trigger m_atPoseTrigger;
 
     public SwerveSubsystem() {
         Motor[] driveMotors = new Motor[]{
@@ -115,13 +115,13 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
         m_angleSetpoint = Rotation2d::new;
         m_translationSetpoint = Translation2d::new;
 
-        m_finishTrigger = new Trigger(m_xController::atSetpoint).and(m_yController::atSetpoint).and(m_angleController::atSetpoint).debounce(0.1);
+        m_atPoseTrigger = new Trigger(m_xController::atSetpoint).and(m_yController::atSetpoint).and(m_angleController::atSetpoint).debounce(0.1);
     }
 
     public Command driveCommand(Supplier<Vector2D> velocityMPS,
                                 DoubleSupplier omegaRadPerSec,
                                 BooleanSupplier fieldOriented) {
-        return m_swerveMechanism.driveCommand(velocityMPS, omegaRadPerSec, fieldOriented, true, this);
+        return m_swerveMechanism.driveCommand(velocityMPS, omegaRadPerSec, fieldOriented, true, this).withName("Drive Command");
     }
 
     /**
@@ -132,13 +132,16 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
      */
     public Command turnToAngleCommand(Supplier<Vector2D> velocityMPS, Supplier<Rotation2d> angleSetpoint) {
         return new SequentialCommandGroup(
-                new InstantCommand(() -> m_angleSetpoint = angleSetpoint),
+                new InstantCommand(() -> {
+                    m_angleController.calculate(m_swerveMechanism.getRotation2D().getRadians(), angleSetpoint.get().getRadians());
+                    m_angleSetpoint = angleSetpoint;
+                }),
                 driveCommand(
                         velocityMPS,
                         () -> m_angleController.calculate(m_swerveMechanism.getRotation2D().getRadians(), angleSetpoint.get().getRadians()),
                         () -> true
                 )
-        ).withName("Turn To Angle");
+        ).until(m_angleController::atSetpoint).withName("Turn To Angle Command");
     }
 
     public Command pidToPoseCommand(Supplier<Pose2d> poseSetpoint) {
@@ -158,22 +161,20 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
                                     m_xController.calculate(m_swerveMechanism.getPose2D().getX(), poseSetpoint.get().getX()),
                                     m_yController.calculate(m_swerveMechanism.getPose2D().getY(), poseSetpoint.get().getY())
                             );
-                            double distance = m_swerveMechanism.getPose2D().getTranslation().getDistance(poseSetpoint.get().getTranslation());
                             if (AllianceUtils.isRedAlliance()) return vel.rotate(kPi);
                             return vel;
                         },
                         () -> m_angleController.calculate(m_swerveMechanism.getRotation2D().getRadians(), poseSetpoint.get().getRotation().getRadians()),
                         () -> true
                 )
-        ).until(m_finishTrigger).withName("PID To Pose");
-    }
-
-    public Runnable getOdometryUpdaterRunnable() {
-        return m_swerveMechanism::updateOdometry;
+        ).until(m_atPoseTrigger).withName("PID To Pose Command");
     }
 
     @Override
     public void periodic() {
         m_swerveMechanism.periodic();
+
+        // Optionally, you can add new periodic that updates the odometry in RobotContainer to update it in higher frequency
+        m_swerveMechanism.updateOdometry();
     }
 }
