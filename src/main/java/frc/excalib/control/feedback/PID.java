@@ -1,4 +1,4 @@
-package frc.excalib.control.math;
+package frc.excalib.control.feedback;
 
 import frc.excalib.additional_utilities.periodics.PeriodicScheduler;
 import frc.excalib.additional_utilities.periodics.PeriodicTask;
