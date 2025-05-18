@@ -1,23 +1,24 @@
-package frc.excalib.control.math;
+package frc.excalib.control.math.filters;
 
 import frc.excalib.additional_utilities.periodics.PeriodicScheduler;
 import frc.excalib.additional_utilities.periodics.PeriodicTask;
 
 import java.util.function.DoubleSupplier;
 
-public class Derivative extends PeriodicTask {
-    private double value = 0.0;
+public class Integral extends PeriodicTask {
+    private double value;
     private double last;
-    private final double periodSeconds;
 
-    public Derivative(DoubleSupplier f, PeriodicScheduler.PERIOD period) {
+    public Integral(double initialValue, DoubleSupplier f, PeriodicScheduler.PERIOD period) {
         super(() -> {}, period);
         this.last = f.getAsDouble();
-        this.periodSeconds = period.milliseconds / 1000.0;
+        this.value = initialValue;
+
+        double periodSeconds = period.milliseconds / 1000.0;
 
         super.setTask(() -> {
             double current = f.getAsDouble();
-            value = (current - last) / periodSeconds;
+            value += periodSeconds * (current + last) / 2.0;
             last = current;
         });
     }
