@@ -11,4 +11,7 @@ public class PeriodicTask {
     public void execute(){
         task.run();
     }
+    public void setTask(Runnable task){
+        this.task = task;
+    }
 }
