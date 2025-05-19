@@ -43,22 +43,24 @@ public class AllianceUtils {
 
     /**
      * Converts a pose to the pose relative to the current driver station alliance.
-     * @param bluePose the current blue alliance pose
+     *
+     * @param pose the current blue alliance pose
      * @return the converted Pose2d pose
      */
-    public static Pose2d toAlliancePose(Pose2d bluePose) {
-        if (isBlueAlliance()) return bluePose;
-        return switchAlliance(bluePose);
-    }
-
-    public static Pose2d switchAlliance(Pose2d pose) {
+    public static Pose2d rotateToAlliancePose(Pose2d pose) {
         return new Pose2d(
                 FIELD_LENGTH_METERS - pose.getX(), FIELD_WIDTH_METERS - pose.getY(),
                 pose.getRotation().minus(Rotation2d.fromDegrees(180))
         );
     }
 
-    public static Pose2d mirrorAlliance(Pose2d pose) {
+    /**
+     * Converts a pose to the pose relative to the current driver station alliance.
+     *
+     * @param pose the current blue alliance pose
+     * @return the converted Pose2d pose
+     */
+    public static Pose2d mirrorToAlliancePose(Pose2d pose) {
         return new Pose2d(
                 FIELD_LENGTH_METERS - pose.getX(),
                 pose.getY(),
@@ -67,22 +69,30 @@ public class AllianceUtils {
     }
 
     public static class AlliancePose {
-        private Pose2d pose;
+        private final Pose2d m_pose;
 
-        public AlliancePose(double x, double y, double degrees){
-            this.pose = new Pose2d(x, y, Rotation2d.fromDegrees(degrees));
+        public AlliancePose(double x, double y, double rotationRadians) {
+            this.m_pose = new Pose2d(x, y, new Rotation2d(rotationRadians));
         }
 
         public AlliancePose(Translation2d translation, Rotation2d rotation) {
-            this.pose = new Pose2d(translation, rotation);
+            this.m_pose = new Pose2d(translation, rotation);
         }
 
-        public AlliancePose(double degrees){
-            this.pose = new Pose2d(0, 0, Rotation2d.fromDegrees(degrees));
+        public AlliancePose(Pose2d pose) {
+            this.m_pose = new Pose2d(pose.getTranslation(), pose.getRotation());
         }
 
-        public Pose2d get() {
-            return toAlliancePose(pose);
+        public AlliancePose(double rotationRadians) {
+            this.m_pose = new Pose2d(0, 0, new Rotation2d(rotationRadians));
+        }
+
+        public Pose2d getRotated() {
+            return rotateToAlliancePose(m_pose);
+        }
+
+        public Pose2d getMirrored() {
+            return mirrorToAlliancePose(m_pose);
         }
     }
 }
