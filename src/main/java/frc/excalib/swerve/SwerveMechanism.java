@@ -40,7 +40,7 @@ public class SwerveMechanism implements Logged {
      * A constructor that initialize the Swerve Subsystem
      *
      * @param modules         The ModulesHolder containing all swerve modules.
-     * @param imu             IMU sensor.
+     * @param imu             The IMU sensor.
      * @param initialPosition The initial position of the robot.
      */
     public SwerveMechanism(ModulesHolder modules,
@@ -48,6 +48,7 @@ public class SwerveMechanism implements Logged {
                            IMU imu,
                            Pose2d initialPosition) {
         this.m_MODULES = modules;
+
         this.m_imu = imu;
         m_imu.resetIMU();
 
@@ -68,7 +69,7 @@ public class SwerveMechanism implements Logged {
      * Creates a drive command for the swerve drive.
      *
      * @param velocityMPS    Supplier for the desired linear velocity in meters per second.
-     * @param omegaRadPerSec Supplier for the desired rotational velocity in radians per second.
+     * @param omegaRadPerSec Supplier for the desired angular velocity in radians per second.
      * @param fieldOriented  Supplier indicating whether the control is field-oriented.
      * @return A command that drives the robot.
      */
@@ -109,7 +110,7 @@ public class SwerveMechanism implements Logged {
     /**
      * A non-command function that drives the robot (for pathplanner).
      *
-     * @param speeds A ChassisSpeeds object represents ROBOT RELATIVE speeds desired speeds.
+     * @param speeds A ChassisSpeeds object represents ROBOT RELATIVE desired speeds.
      */
     public void driveRobotRelativeChassisSpeeds(ChassisSpeeds speeds) {
         SwerveModuleState[] desiredStates = m_MODULES.getSwerveDriveKinematics().toSwerveModuleStates(speeds);
@@ -126,12 +127,17 @@ public class SwerveMechanism implements Logged {
         return new InstantCommand(m_MODULES::stop);
     }
 
+    /**
+     * @return A Command that sets the idle state of the swerve to coast.
+     */
     public Command coastCommand() {
         return m_MODULES.coastCommand().ignoringDisable(true).withName("Coast Command");
     }
 
     /**
      * Updates the robot's odometry.
+     *
+     * @param visionMeasurements Optionally, you can add a vision measurement to the odometry.
      */
     public void updateOdometry(VisionMeasurement... visionMeasurements) {
         m_odometry.updateOdometry(m_MODULES.getModulesPositions());
@@ -141,12 +147,15 @@ public class SwerveMechanism implements Logged {
         }
     }
 
+    /**
+     * @return A command that resets the IMU angle.
+     */
     public Command resetAngleCommand() {
         return new InstantCommand(m_imu::resetIMU).ignoringDisable(true);
     }
 
     /**
-     * A method that restarts the odometry.
+     * A method that resets the odometry.
      *
      * @param newPose the wanted new Pose2d of the robot.
      */
@@ -155,9 +164,9 @@ public class SwerveMechanism implements Logged {
     }
 
     /**
-     * Gets the robot's rotation.
+     * Gets the robot's heading.
      *
-     * @return The current rotation of the robot.
+     * @return The current heading of the robot.
      */
     @Log.NT(key = "Robot Angle")
     public Rotation2d getRotation2D() {
@@ -224,23 +233,38 @@ public class SwerveMechanism implements Logged {
         return m_MODULES.getSwerveDriveKinematics().toChassisSpeeds(m_MODULES.getStates());
     }
 
+    /**
+     * Gets the desired robot relative speed.
+     *
+     * @return The robot's desired speed as a ChassisSpeeds.
+     */
     @Log.NT(key = "Desired Chassis Speeds")
     public ChassisSpeeds getDesiredChassisSpeeds() {
         return m_desiredChassisSpeeds;
     }
 
+    /**
+     * Gets the current modules states.
+     *
+     * @return The robot's modules states.
+     */
     @Log.NT(key = "Modules States")
     public SwerveModuleState[] getModulesStates() {
         return m_MODULES.getStates();
     }
 
+    /**
+     * Gets the desired modules states.
+     *
+     * @return The robot's desired modules states.
+     */
     @Log.NT(key = "Modules Desired States")
     public SwerveModuleState[] getDesiredModulesStates() {
         return m_MODULES.getDesiredStates();
     }
 
     /**
-     * A function that initialize the Swerve tab for Elastic.
+     * A function that initialize the Swerve data for the dashboard.
      */
     public void putSmartDashboardData() {
         SmartDashboard.putData("Swerve Drive", builder -> {
@@ -263,7 +287,7 @@ public class SwerveMechanism implements Logged {
     }
 
     /**
-     * Runs a system identification routine on a specific module's angle.
+     * Runs a system identification routine on a specific module's driving mechanism.
      *
      * @param module  The module index (0-3).
      * @param dir     The direction of the sysid routine.
@@ -287,7 +311,7 @@ public class SwerveMechanism implements Logged {
     }
 
     /**
-     * Runs a system identification routine on a specific module's angle.
+     * Runs a system identification routine on a specific module's steering mechanism.
      *
      * @param module  The module index (0-3).
      * @param dir     The direction of the sysid routine.
@@ -310,6 +334,9 @@ public class SwerveMechanism implements Logged {
                 : selectedModule.angleSysIdQuas(dir, swerve, sysidConfig);
     }
 
+    /**
+     * A method that updates the modules positions of all modules. should be called periodically.
+     */
     public void periodic() {
         m_MODULES.periodic();
     }
