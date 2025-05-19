@@ -36,8 +36,6 @@ public class SwerveMechanism implements Logged {
     private final Odometry m_odometry;
     private ChassisSpeeds m_desiredChassisSpeeds = new ChassisSpeeds();
 
-    private final SwerveDriveKinematics m_swerveDriveKinematics;
-
     /**
      * A constructor that initialize the Swerve Subsystem
      *
@@ -63,8 +61,6 @@ public class SwerveMechanism implements Logged {
         m_specs = swerveSpecs;
         SwerveAccUtils.setSwerveSpecs(m_specs);
 
-        m_swerveDriveKinematics = m_MODULES.getSwerveDriveKinematics();
-
         putSmartDashboardData();
     }
 
@@ -84,7 +80,7 @@ public class SwerveMechanism implements Logged {
             SubsystemBase... requirements) {
 
         Supplier<Vector2D> adjustedVelocitySupplier = () -> {
-            Vector2D velocity = getSmartTranslationalVelocitySetPoint(getVelocity(), velocityMPS.get(), withAccLimits);
+            Vector2D velocity = getSmartTranslationalVelocitySetPoint(getSigmaRobotVelocity(), velocityMPS.get(), withAccLimits);
             if (fieldOriented.getAsBoolean()) {
                 Rotation2d yaw = getRotation2D().unaryMinus();
                 if (!AllianceUtils.isBlueAlliance()) yaw = yaw.plus(kPi);
@@ -116,7 +112,7 @@ public class SwerveMechanism implements Logged {
      * @param speeds A ChassisSpeeds object represents ROBOT RELATIVE speeds desired speeds.
      */
     public void driveRobotRelativeChassisSpeeds(ChassisSpeeds speeds) {
-        SwerveModuleState[] desiredStates = m_swerveDriveKinematics.toSwerveModuleStates(speeds);
+        SwerveModuleState[] desiredStates = m_MODULES.getSwerveDriveKinematics().toSwerveModuleStates(speeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, m_specs.maxVelocity());
         m_MODULES.setModulesStates(desiredStates);
     }
@@ -179,20 +175,30 @@ public class SwerveMechanism implements Logged {
     }
 
     /**
-     * Gets the current velocity of the robot.
+     * Gets the current sigma velocity of the robot.
      *
-     * @return The robot's velocity as a Vector2D.
+     * @return The robot's sigma velocity as a Vector2D.
      */
-    @Log.NT(key = "Robot Velocity")
-    public Vector2D getVelocity() {
-        return m_MODULES.getVelocity();
+    @Log.NT(key = "Robot Sigma Velocity")
+    public Vector2D getSigmaRobotVelocity() {
+        return m_MODULES.getSigmaVelocity();
     }
 
-//    @Log.NT(key = "Robot Velocity Distance")
-//    public double getVelocityDistance() {
-//        return m_MODULES.getVelocityDistance();
-//    }
+    /**
+     * Gets the current linear velocity of the robot.
+     *
+     * @return The robot's linear velocity.
+     */
+    @Log.NT(key = "Robot Linear Velocity")
+    public double getLinearRobotVelocity() {
+        return m_MODULES.getLinearVelocity();
+    }
 
+    /**
+     * Gets the current angular velocity of the robot.
+     *
+     * @return The robot's angular velocity.
+     */
     @Log.NT(key = "Robot Angular Velocity")
     public double getOmegaRadPerSec() {
         return m_MODULES.getOmegaRadPerSec();
@@ -203,7 +209,7 @@ public class SwerveMechanism implements Logged {
      *
      * @return The robot's acceleration as a Vector2D.
      */
-    @Log.NT(key = "Robot Acceleration")
+    @Log.NT(key = "Robot Acceleration Distance")
     public double getAccelerationDistance() {
         return new Vector2D(m_imu.getAccX(), m_imu.getAccY()).getDistance();
     }
@@ -214,8 +220,8 @@ public class SwerveMechanism implements Logged {
      * @return The robot's speed as a ChassisSpeeds.
      */
     @Log.NT(key = "Measured Chassis Speeds")
-    public ChassisSpeeds getRobotRelativeChassisSpeeds() {
-        return m_swerveDriveKinematics.toChassisSpeeds(m_MODULES.getStates());
+    public ChassisSpeeds getRobotChassisSpeeds() {
+        return m_MODULES.getSwerveDriveKinematics().toChassisSpeeds(m_MODULES.getStates());
     }
 
     @Log.NT(key = "Desired Chassis Speeds")

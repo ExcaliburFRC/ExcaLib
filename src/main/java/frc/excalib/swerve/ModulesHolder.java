@@ -142,7 +142,7 @@ public class ModulesHolder implements Logged {
      *
      * @return a Vector2D represents the robot's velocity.
      */
-    Vector2D getVelocity() {
+    Vector2D getSigmaVelocity() {
         // Sum the velocities of all modules
         double totalX = m_frontLeft.getVelocity().getX()
                 + m_frontRight.getVelocity().getX()
@@ -163,7 +163,7 @@ public class ModulesHolder implements Logged {
      *
      * @return the linear velocity of the robot.
      */
-    double getVelocityDistance() {
+    double getLinearVelocity() {
         return new Vector2D(
                 m_swerveDriveKinematics.toChassisSpeeds(getStates()).vxMetersPerSecond,
                 m_swerveDriveKinematics.toChassisSpeeds(getStates()).vyMetersPerSecond
