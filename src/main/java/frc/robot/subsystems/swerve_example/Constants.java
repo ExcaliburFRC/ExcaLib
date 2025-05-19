@@ -1,5 +1,6 @@
 package frc.robot.subsystems.swerve_example;
 
+import com.pathplanner.lib.config.PIDConstants;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -68,4 +69,7 @@ public class Constants {
     // Auto Drive Controllers
     public static final Gains ANGLE_PID_GAINS = new Gains();
     public static final Gains TRANSLATION_PID_GAINS = new Gains();
+
+    public static final PIDConstants ANGLE_PID_PP_CONSTANTS = new PIDConstants(0.0, 0.0, 0.0);
+    public static final PIDConstants TRANSLATION_PID_PP_CONSTANTS = new PIDConstants(0.0, 0.0, 0.0);
 }

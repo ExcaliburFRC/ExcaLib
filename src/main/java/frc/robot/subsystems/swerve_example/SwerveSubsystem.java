@@ -1,10 +1,14 @@
 package frc.robot.subsystems.swerve_example;
 
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -116,6 +120,8 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
         m_translationSetpoint = Translation2d::new;
 
         m_atPoseTrigger = new Trigger(m_xController::atSetpoint).and(m_yController::atSetpoint).and(m_angleController::atSetpoint).debounce(0.1);
+
+        initAutoBuilder();
     }
 
     public Command driveCommand(Supplier<Vector2D> velocityMPS,
@@ -168,6 +174,43 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
                         () -> true
                 )
         ).until(m_atPoseTrigger).withName("PID To Pose Command");
+    }
+
+    /**
+     * A function that initialize the AutoBuilder for pathplanner.
+     */
+    public void initAutoBuilder() {
+        // Load the RobotConfig from the GUI settings. You should probably
+        // store this in your Constants file
+        RobotConfig config = null;
+        try {
+            config = RobotConfig.fromGUISettings();
+        } catch (Exception e) {
+            // Handle exception as needed
+            e.printStackTrace();
+        }
+
+        // Configure AutoBuilder last
+        AutoBuilder.configure(
+                m_swerveMechanism::getPose2D, // Robot pose supplier
+                m_swerveMechanism::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
+                m_swerveMechanism::getRobotChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+                (speeds, feedforwards) -> m_swerveMechanism.driveRobotRelativeChassisSpeeds(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+                new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
+                        TRANSLATION_PID_PP_CONSTANTS, // Translation PID constants
+                        ANGLE_PID_PP_CONSTANTS // Rotation PID constants
+                ),
+                config, // The robot configuration
+                () -> {
+                    // Boolean supplier that controls when the path will be mirrored for the red alliance
+                    // This will flip the path being followed to the red side of the field.
+                    // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+                    var alliance = DriverStation.getAlliance();
+                    return alliance.filter(value -> value == DriverStation.Alliance.Red).isPresent();
+                },
+                this // Reference to this subsystem to set requirements
+        );
     }
 
     @Override
