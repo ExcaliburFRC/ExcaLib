@@ -13,6 +13,7 @@ import frc.excalib.control.gains.SysidConfig;
 import frc.excalib.control.math.Vector2D;
 import frc.excalib.mechanisms.fly_wheel.FlyWheel;
 import frc.excalib.mechanisms.turret.Turret;
+import monologue.Annotations.Log;
 import monologue.Logged;
 
 import java.util.function.DoubleSupplier;
@@ -199,7 +200,7 @@ public class SwerveModule implements Logged {
     /**
      * A method that stops the module by setting the drive wheel output to zero.
      */
-    void stopModule() {
+    public void stopModule() {
         m_drivingMechanism.setOutput(0);
     }
 
@@ -218,7 +219,7 @@ public class SwerveModule implements Logged {
      *
      * @return a Vector2D represents the module velocity.
      */
-    Vector2D getVelocity() {
+    public Vector2D getVelocity() {
         return new Vector2D(m_drivingMechanism.getVelocity(), getPosition());
     }
 
@@ -227,7 +228,7 @@ public class SwerveModule implements Logged {
      *
      * @return the angle of the module as Rotation2d.
      */
-    Rotation2d getPosition() {
+    public Rotation2d getPosition() {
         return m_steeringMechanism.getPosition();
     }
 
@@ -236,6 +237,7 @@ public class SwerveModule implements Logged {
      *
      * @return the module position.
      */
+    @Log.NT(key = "Module Position")
     public SwerveModulePosition getModulePosition() {
         return m_swerveModulePosition;
     }
@@ -245,6 +247,7 @@ public class SwerveModule implements Logged {
      *
      * @return the current state of the module.
      */
+    @Log.NT(key = "Module State")
     public SwerveModuleState getState() {
         Vector2D velocity = getVelocity();
         return new SwerveModuleState(velocity.getDistance(), velocity.getDirection());
@@ -255,23 +258,55 @@ public class SwerveModule implements Logged {
      *
      * @return the wanted state of the module.
      */
-    public SwerveModuleState getSetpointState() {
+    @Log.NT(key = "Module Desired State")
+    public SwerveModuleState getDesiredState() {
         return new SwerveModuleState(m_setPoint.getDistance(), m_setPoint.getDirection());
     }
 
-
+    /**
+     * A command for dynamic sysId to the driving mechanism of the module
+     *
+     * @param direction the wanted direction of the driving mechanism
+     * @param swerve the swerve subsystem (for requirements)
+     * @param sysidConfig the configuration for the sysId
+     * @return the dynamic sysId command
+     */
     public Command driveSysIdDynamic(SysIdRoutine.Direction direction, SubsystemBase swerve, SysidConfig sysidConfig) {
         return m_drivingMechanism.sysIdDynamic(direction, swerve, m_drivingMechanism::logPosition, sysidConfig, false);
     }
 
+    /**
+     * A command for quasistatic sysId to the driving mechanism of the module
+     *
+     * @param direction the wanted direction of the driving mechanism
+     * @param swerve the swerve subsystem (for requirements)
+     * @param sysidConfig the configuration for the sysId
+     * @return the quasistatic sysId command
+     */
     public Command driveSysIdQuas(SysIdRoutine.Direction direction, SubsystemBase swerve, SysidConfig sysidConfig) {
         return m_drivingMechanism.sysIdQuasistatic(direction, swerve, m_drivingMechanism::logPosition, sysidConfig, false);
     }
 
+    /**
+     * A command for dynamic sysId to the steering mechanism of the module
+     *
+     * @param direction the wanted direction of the steering mechanism
+     * @param swerve the swerve subsystem (for requirements)
+     * @param sysidConfig the configuration for the sysId
+     * @return the dynamic sysId command
+     */
     public Command angleSysIdDynamic(SysIdRoutine.Direction direction, SubsystemBase swerve, SysidConfig sysidConfig) {
         return m_steeringMechanism.sysIdDynamic(direction, swerve, m_steeringMechanism::logPosition, sysidConfig, false);
     }
 
+    /**
+     * A command for quasistatic sysId to the steering mechanism of the module
+     *
+     * @param direction the wanted direction of the steering mechanism
+     * @param swerve the swerve subsystem (for requirements)
+     * @param sysidConfig the configuration for the sysId
+     * @return the quasistatic sysId command
+     */
     public Command angleSysIdQuas(SysIdRoutine.Direction direction, SubsystemBase swerve, SysidConfig sysidConfig) {
         return m_steeringMechanism.sysIdQuasistatic(direction, swerve, m_steeringMechanism::logPosition, sysidConfig, false);
     }

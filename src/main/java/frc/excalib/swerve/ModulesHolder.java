@@ -195,10 +195,10 @@ public class ModulesHolder implements Logged {
 
     SwerveModuleState[] getDesiredStates() {
         return new SwerveModuleState[]{
-                m_frontLeft.getSetpointState(),
-                m_frontRight.getSetpointState(),
-                m_backLeft.getSetpointState(),
-                m_backRight.getSetpointState()
+                m_frontLeft.getDesiredState(),
+                m_frontRight.getDesiredState(),
+                m_backLeft.getDesiredState(),
+                m_backRight.getDesiredState()
         };
     }
 
