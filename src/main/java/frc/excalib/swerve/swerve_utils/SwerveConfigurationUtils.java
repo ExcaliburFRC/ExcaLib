@@ -11,7 +11,21 @@ import frc.excalib.swerve.SwerveModule;
 
 import java.util.function.DoubleSupplier;
 
+/**
+ * A class that contains functions that simplifies the swerve configuration process
+ */
 public class SwerveConfigurationUtils {
+
+    /**
+     * A method to configure the drive motors
+     *
+     * @param driveMotors an array represents the drive motors
+     * @param stallLimit the wanted stall limit for the motors
+     * @param freeLimit the wanted free limit for the motors
+     * @param directionState the wanted direction state for the motors
+     * @param idleState the wanted idle state of the motors
+     * @param moduleType the type of the module
+     */
     private static void setupDriveMotors(Motor[] driveMotors, int stallLimit, int freeLimit,
                                               DirectionState directionState, IdleState idleState,
                                               SwerveModuleType moduleType) {
@@ -24,17 +38,42 @@ public class SwerveConfigurationUtils {
         }
     }
 
-    private static void setupSteeringMotors(Motor[] driveMotors, int stallLimit, int freeLimit,
+    /**
+     * A method to configure the steering motors
+     *
+     * @param steeringMotors an array represents the steering motors
+     * @param stallLimit the wanted stall limit for the motors
+     * @param freeLimit the wanted free limit for the motors
+     * @param directionState the wanted direction state for the motors
+     * @param idleState the wanted idle state of the motors
+     * @param moduleType the type of the module
+     */
+    private static void setupSteeringMotors(Motor[] steeringMotors, int stallLimit, int freeLimit,
                                             DirectionState directionState, IdleState idleState,
                                             SwerveModuleType moduleType) {
-        for (Motor driveMotor : driveMotors) {
-            driveMotor.setInverted(directionState);
-            driveMotor.setIdleState(idleState);
-            driveMotor.setVelocityConversionFactor(moduleType.kVelocityConversionFactor);
-            driveMotor.setCurrentLimit(stallLimit, freeLimit);
+        for (Motor steeringMotor : steeringMotors) {
+            steeringMotor.setInverted(directionState);
+            steeringMotor.setIdleState(idleState);
+            steeringMotor.setVelocityConversionFactor(moduleType.kVelocityConversionFactor);
+            steeringMotor.setCurrentLimit(stallLimit, freeLimit);
         }
     }
 
+    /**
+     * A method to configure the fly wheels which represents the driving mechanism
+     *
+     * @param driveMotors an array represents the drive motors
+     * @param stallLimit the wanted stall limit for the motors
+     * @param freeLimit the wanted free limit for the motors
+     * @param directionState the wanted direction state for the motors
+     * @param idleState the wanted idle state of the motors
+     * @param moduleType the type of the module
+     * @param driveModuleGains the driving mechanisms gains
+     * @param maxModuleAcceleration the max acceleration of the module
+     * @param maxModuleJerk the max jerk of the module
+     *
+     * @return an array of fly wheels represents the driving mechanisms
+     */
     public static FlyWheel[] setupDrivingMechanisms(Motor[] driveMotors, int stallLimit, int freeLimit,
                                                     DirectionState directionState, IdleState idleState,
                                                     SwerveModuleType moduleType, Gains driveModuleGains,
@@ -51,6 +90,21 @@ public class SwerveConfigurationUtils {
         return drivingMechanisms;
     }
 
+    /**
+     * A method to configure the fly wheels which represents the driving mechanism
+     *
+     * @param steeringMotors an array represents the steering motors
+     * @param stallLimit the wanted stall limit for the motors
+     * @param freeLimit the wanted free limit for the motors
+     * @param directionState the wanted direction state for the motors
+     * @param idleState the wanted idle state of the motors
+     * @param moduleType the type of the module
+     * @param steeringModuleGains the steering mechanisms gains
+     * @param steeringModulesPositionSuppliers the supplier of the module position
+     * @param steeringPIDtolerance the tolerance for the PID of the steering mechanisms
+     *
+     * @return an array of turrets represents the steering mechanisms
+     */
     public static Turret[] setupSteeringMechanisms(Motor[] steeringMotors, int stallLimit, int freeLimit,
                                                    DirectionState directionState, IdleState idleState,
                                                    SwerveModuleType moduleType, Gains steeringModuleGains,
@@ -67,6 +121,16 @@ public class SwerveConfigurationUtils {
         return steeringMechanisms;
     }
 
+    /**
+     * A function that initializes the swerve modules
+     *
+     * @param driveWheels an array of fly wheels represents the driving mechanisms
+     * @param steeringMechanisms an array of turrets represents the steering mechanisms
+     * @param moduleLocations the locations of the modules relative to the center of the robot
+     * @param maxModuleVelocity the max velocity of the modules
+     *
+     * @return an array of SwerveModules
+     */
     public static SwerveModule[] setupSwerveModules(FlyWheel[] driveWheels, Turret[] steeringMechanisms,
                                                     Translation2d[] moduleLocations, double maxModuleVelocity) {
         SwerveModule[] swerveModules = new SwerveModule[4];
@@ -81,6 +145,16 @@ public class SwerveConfigurationUtils {
         return swerveModules;
     }
 
+    /**
+     * A function that initializes the swerve modules
+     *
+     * @param driveWheels an array of fly wheels represents the driving mechanisms
+     * @param steeringMechanisms an array of turrets represents the steering mechanisms
+     * @param moduleLocations the locations of the modules relative to the center of the robot
+     * @param maxModulesVelocities an array of the max velocities of each module
+     *
+     * @return an array of SwerveModules
+     */
     public static SwerveModule[] setupSwerveModules(FlyWheel[] driveWheels, Turret[] steeringMechanisms,
                                                     Translation2d[] moduleLocations, double[] maxModulesVelocities) {
         SwerveModule[] swerveModules = new SwerveModule[4];
