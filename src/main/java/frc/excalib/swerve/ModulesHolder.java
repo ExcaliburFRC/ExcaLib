@@ -58,24 +58,28 @@ public class ModulesHolder implements Logged {
      * A method that calculates the minimum velocity ratio limit among all modules.
      *
      * @param translationVelocity The desired translation velocity of the robot.
-     * @param omegaRadPerSec      The desired rotation rate of the robot in radians per second.
+     * @param omegaRadPerSec      The desired angular velocity of the robot in radians per second.
      * @return The velocity ratio limit.
      */
     private double calcVelocityRatioLimit(Vector2D translationVelocity, double omegaRadPerSec) {
-        double flLimit = m_frontLeft.getVelocityRatioLimit(translationVelocity, omegaRadPerSec);
-        double frLimit = m_frontRight.getVelocityRatioLimit(translationVelocity, omegaRadPerSec);
-        double blLimit = m_backLeft.getVelocityRatioLimit(translationVelocity, omegaRadPerSec);
-        double brLimit = m_backRight.getVelocityRatioLimit(translationVelocity, omegaRadPerSec);
-
-        double velocityRatioLimit = Math.min(Math.min(flLimit, frLimit), Math.min(blLimit, brLimit));
+        double velocityRatioLimit = Math.min(
+                Math.min(
+                        m_frontLeft.getVelocityRatioLimit(translationVelocity, omegaRadPerSec),
+                        m_frontRight.getVelocityRatioLimit(translationVelocity, omegaRadPerSec)
+                ),
+                Math.min(
+                        m_backLeft.getVelocityRatioLimit(translationVelocity, omegaRadPerSec),
+                        m_backRight.getVelocityRatioLimit(translationVelocity, omegaRadPerSec)
+                )
+        );
         return Math.min(1.0, velocityRatioLimit); // Ensure the limit does not exceed 1.0
     }
 
     /**
      * A method that sets the velocities of all modules based on the desired translation and rotation velocities of the robot.
      *
-     * @param omega            The desired rotation rate supplier.
      * @param translationalVel The desired translation velocity supplier.
+     * @param omega            The desired angular velocity supplier.
      * @return A command that sets the velocities.
      */
     Command setVelocitiesCommand(Supplier<Vector2D> translationalVel, DoubleSupplier omega) {
@@ -138,7 +142,7 @@ public class ModulesHolder implements Logged {
     }
 
     /**
-     * A method to get the robot's average velocity based on the velocities of all modules.
+     * A method to get the robot's average sigma velocity based on the velocities of all modules.
      *
      * @return a Vector2D represents the robot's velocity.
      */
@@ -193,6 +197,11 @@ public class ModulesHolder implements Logged {
         };
     }
 
+    /**
+     * A method to get the desired states of all modules.
+     *
+     * @return An array of SwerveModuleState representing the desired states of the modules.
+     */
     SwerveModuleState[] getDesiredStates() {
         return new SwerveModuleState[]{
                 m_frontLeft.getDesiredState(),
@@ -220,6 +229,9 @@ public class ModulesHolder implements Logged {
         return m_modulePositions;
     }
 
+    /**
+     * A method that updates the modules positions of all modules. should be called periodically.
+     */
     public void periodic() {
         m_frontLeft.periodic();
         m_frontRight.periodic();
