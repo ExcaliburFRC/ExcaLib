@@ -39,22 +39,33 @@ import static edu.wpi.first.math.geometry.Rotation2d.kPi;
 import static frc.robot.subsystems.swerve_example.Constants.*;
 
 public class SwerveSubsystem extends SubsystemBase implements Logged {
+    // An array of the absolute encoders that measure the module's positions
     private final CANcoder[] m_cancoders;
 
+    // An array of the swerve modules
     private final SwerveModule[] m_swerveModules;
-    private final SwerveMechanism m_swerveMechanism;
+
+    // The IMU measures the robot's heading
     private final IMU m_gyro;
 
+    private final SwerveMechanism m_swerveMechanism;
+
+    // PID controllers for the example turnToAngle and pidToPose commands
     private final PIDController m_angleController;
     private final PIDController m_xController;
     private final PIDController m_yController;
-
+    // setpoint for the example turnToAngle and pidToPose commands
     private Supplier<Rotation2d> m_angleSetpoint;
     private Supplier<Translation2d> m_translationSetpoint;
-
+    // finish trigger for the example pidToPoseCommand.
     private final Trigger m_atPoseTrigger;
 
+    /**
+     * A constructor that initialize the swerve subsystem
+     */
     public SwerveSubsystem() {
+        // The drive motors of the modules.
+        // THEY MUST BE ARRANGED IN THE FOLLOWING ORDER: front left, front right, back left, back right
         Motor[] driveMotors = new Motor[]{
                 new TalonFXMotor(FRONT_LEFT_DRIVE_ID, SWERVE_CANBUS),
                 new TalonFXMotor(FRONT_RIGHT_DRIVE_ID, SWERVE_CANBUS),
@@ -62,6 +73,8 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
                 new TalonFXMotor(BACK_RIGHT_DRIVE_ID, SWERVE_CANBUS)
         };
 
+        // The steering motors of the modules.
+        // THEY MUST BE ARRANGED IN THE FOLLOWING ORDER: front left, front right, back left, back right
         Motor[] steeringMotors = new Motor[]{
                 new SparkMaxMotor(FRONT_LEFT_ROTATION_ID, kBrushless),
                 new SparkMaxMotor(FRONT_RIGHT_ROTATION_ID, kBrushless),
@@ -76,13 +89,16 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
                 new CANcoder(BACK_RIGHT_CANCODER_ID, SWERVE_CANBUS)
         };
 
-        DoubleSupplier[] steeringPositionSuppliers = {
+        // An array of DoubleSupplier represents the positions of the modules.
+        // THEY MUST BE ARRANGED IN THE FOLLOWING ORDER: front left, front right, back left, back right
+        DoubleSupplier[] modulesPositionsSuppliers = {
                 () -> m_cancoders[0].getPosition().getValueAsDouble(),
                 () -> m_cancoders[1].getPosition().getValueAsDouble(),
                 () -> m_cancoders[2].getPosition().getValueAsDouble(),
                 () -> m_cancoders[3].getPosition().getValueAsDouble()
         };
 
+        // A function that initializes the swerve modules objects
         m_swerveModules = SwerveConfigurationUtils.setupSwerveModules(
                 SwerveConfigurationUtils.setupDrivingMechanisms(
                         driveMotors, STALL_DRIVING_MODULE_LIMIT, FREE_DRIVING_MODULE_LIMIT,
@@ -92,16 +108,19 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
                 SwerveConfigurationUtils.setupSteeringMechanisms(
                         steeringMotors, STALL_STEERING_MODULE_LIMIT, FREE_STEERING_MODULE_LIMIT,
                         DirectionState.FORWARD, IdleState.BRAKE, MODULE_TYPE,
-                        STEERING_MODULE_GAINS, steeringPositionSuppliers, STEERING_PID_TOLERANCE
+                        STEERING_MODULE_GAINS, modulesPositionsSuppliers, STEERING_PID_TOLERANCE
                 ),
                 MODULE_LOCATIONS,
                 MAX_MODULE_VELOCITY //Optionally, you can set the max velocity of each module separately (using an array of doubles)
         );
 
+        // Initialization of the IMU
         m_gyro = new Pigeon(GYRO_ID, SWERVE_CANBUS, GYRO_OFFSET);
 
+        // Initialization of the swerve mechanism
         m_swerveMechanism = new SwerveMechanism(
                 new ModulesHolder(
+                        // MUST BE ARRANGED IN THE FOLLOWING ORDER: front left, front right, back left, back right
                         m_swerveModules[0],
                         m_swerveModules[1],
                         m_swerveModules[2],
@@ -112,18 +131,30 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
                 INITIAL_SWERVE_POSITION
         );
 
+        // Initialization of the PID controllers
         m_angleController = new PIDController(ANGLE_PID_GAINS.kp, ANGLE_PID_GAINS.ki, ANGLE_PID_GAINS.kd);
         m_xController = new PIDController(TRANSLATION_PID_GAINS.kp, TRANSLATION_PID_GAINS.ki, TRANSLATION_PID_GAINS.kd);
         m_yController = new PIDController(TRANSLATION_PID_GAINS.kp, TRANSLATION_PID_GAINS.ki, TRANSLATION_PID_GAINS.kd);
 
+        // Initialization of the setpoints
         m_angleSetpoint = Rotation2d::new;
         m_translationSetpoint = Translation2d::new;
 
+        // Initialization of the finish trigger
         m_atPoseTrigger = new Trigger(m_xController::atSetpoint).and(m_yController::atSetpoint).and(m_angleController::atSetpoint).debounce(0.1);
 
+        // Initialization of the AutoBuilder for pathplanner
         initAutoBuilder();
     }
 
+    /**
+     * Takes the drive command from the swerve mechanism.
+     *
+     * @param velocityMPS    Supplier for the desired linear velocity in meters per second.
+     * @param omegaRadPerSec Supplier for the desired angular velocity in radians per second.
+     * @param fieldOriented  Supplier indicating whether the control is field-oriented.
+     * @return A command that drives the robot.
+     */
     public Command driveCommand(Supplier<Vector2D> velocityMPS,
                                 DoubleSupplier omegaRadPerSec,
                                 BooleanSupplier fieldOriented) {
@@ -131,7 +162,7 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     }
 
     /**
-     * A method that turns the robot to a desired angle.
+     * Turns the robot to a desired angle.
      *
      * @param angleSetpoint The desired angle in radians.
      * @return A command that turns the robot to the wanted angle.
@@ -150,6 +181,12 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
         ).until(m_angleController::atSetpoint).withName("Turn To Angle Command");
     }
 
+    /**
+     * Drives the robot to a desired pose.
+     *
+     * @param poseSetpoint The desired pose on the field.
+     * @return A command that turns the robot to the wanted angle.
+     */
     public Command pidToPoseCommand(Supplier<Pose2d> poseSetpoint) {
         return new SequentialCommandGroup(
                 new InstantCommand(
@@ -205,7 +242,6 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
                     // Boolean supplier that controls when the path will be mirrored for the red alliance
                     // This will flip the path being followed to the red side of the field.
                     // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-
                     var alliance = DriverStation.getAlliance();
                     return alliance.filter(value -> value == DriverStation.Alliance.Red).isPresent();
                 },
@@ -213,6 +249,9 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
         );
     }
 
+    /**
+     * A method that updates the modules positions of all modules.
+     */
     @Override
     public void periodic() {
         m_swerveMechanism.periodic();
