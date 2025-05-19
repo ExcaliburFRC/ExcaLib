@@ -71,6 +71,7 @@ public class SwerveMechanism implements Logged {
      * @param velocityMPS    Supplier for the desired linear velocity in meters per second.
      * @param omegaRadPerSec Supplier for the desired angular velocity in radians per second.
      * @param fieldOriented  Supplier indicating whether the control is field-oriented.
+     * @param withAccLimits  whether to use all limits or only the skid limit
      * @return A command that drives the robot.
      */
     public Command driveCommand(

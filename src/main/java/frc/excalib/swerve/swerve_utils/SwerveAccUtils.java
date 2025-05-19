@@ -4,19 +4,29 @@ import frc.excalib.control.math.Vector2D;
 
 import static frc.excalib.control.math.MathUtils.minSize;
 
+/**
+ * A util class that applies acceleration limits on the swerve.
+ */
 public class SwerveAccUtils {
     private static final double CYCLE_TIME = 0.02;
     private static SwerveSpecs kSpecs;
 
+    /**
+     * A function that sets the swerve specs.
+     *
+     * @param specs The swerve specs
+     */
     public static void setSwerveSpecs(SwerveSpecs specs) {
         kSpecs = specs;
     }
 
     /**
-     * A function to get the translational velocity setpoint
+     * A function to get the translational velocity setpoint.
      *
+     * @param currentVel       the current velocity of the swerve
      * @param velocitySetPoint wanted velocity setpoint
-     * @return translational velocity setpoint
+     * @param allLimits        whether to use all limits or only the skid limit
+     * @return translational velocity setpoint with acceleration limits
      */
     public static Vector2D getSmartTranslationalVelocitySetPoint(Vector2D currentVel, Vector2D velocitySetPoint, boolean allLimits) {
         Vector2D deltaVelocity = velocitySetPoint.plus(
@@ -28,7 +38,9 @@ public class SwerveAccUtils {
     /**
      * A function to apply the acceleration limits
      *
+     * @param currentVel    the current velocity of the swerve
      * @param velocityError wanted velocity
+     * @param allLimits     whether to use all limits or only the skid limit
      * @return velocity limited by acceleration limits
      */
     private static Vector2D applyAccelerationLimits(Vector2D currentVel, Vector2D velocityError, boolean allLimits) {
@@ -46,10 +58,12 @@ public class SwerveAccUtils {
     /**
      * A function to apply the forward acceleration limit
      *
+     * @param currentVel         the current velocity of the swerve
      * @param wantedAcceleration the wanted acceleration
      * @return wanted acceleration limited by forward acceleration limit
      */
     private static Vector2D applyForwardLimit(Vector2D currentVel, Vector2D wantedAcceleration) {
+        // TODO: check & debug
         double maxAcceleration =
                 kSpecs.maxForwardAcc() *
                         (1 - (currentVel.getDistance() / kSpecs.maxVelocity()));
@@ -65,6 +79,7 @@ public class SwerveAccUtils {
      * @return wanted acceleration limited by tilt acceleration limit
      */
     private static Vector2D applyTiltLimit(Vector2D wantedAcceleration) {
+        // TODO: check & debug
         double frontAcceleration = minSize(wantedAcceleration.getX(), kSpecs.maxFrontAcc().getAsDouble());
         double sideAcceleration = minSize(wantedAcceleration.getY(), kSpecs.maxSideAcc().getAsDouble());
         return new Vector2D(frontAcceleration, sideAcceleration);
