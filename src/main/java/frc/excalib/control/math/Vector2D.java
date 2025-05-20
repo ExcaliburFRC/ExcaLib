@@ -154,7 +154,14 @@ public class Vector2D {
         this.m_y = magnitude * direction.getSin();
     }
 
+    /**
+     * Limits the size of the vector to the limit vector size in the limit vector axis.
+     *
+     * @param limit the wanted vector to limit to.
+     * @return the limited vector
+     */
     public Vector2D limit(Vector2D limit) {
+        // TODO: check & debug
         Vector2D output = new Vector2D(m_x, m_y);
         output.rotate(limit.getDirection().unaryMinus());
         output.setX(MathUtils.limitTo(limit.getDistance(), output.m_x));
