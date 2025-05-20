@@ -1,17 +1,11 @@
-package frc.excalib.mechanisms.diffrential;
+package frc.excalib.mechanisms.mechanical_mechanisms;
 
-import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.*;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.excalib.control.GenericFF.FeedForwardGainsSetter;
-import frc.excalib.control.GenericFF.GenericFF;
 import frc.excalib.control.gains.Gains;
 import frc.excalib.control.motor.motorType.DifferentialMotor;
 import frc.excalib.control.motor.motor_specs.IdleState;
 import frc.excalib.mechanisms.Mechanism;
-import monologue.Annotations;
 import monologue.Annotations.Log;
 
 import java.util.function.DoubleSupplier;
