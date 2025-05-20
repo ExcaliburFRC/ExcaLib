@@ -33,9 +33,8 @@ public class Differential extends Mechanism {
      * @param differentialMotor a differential motor object of both mechanism motors
      * @param gains gains for pid & ff for the two motors
      * @param differentialMul an optional multiplier to correct acc error in certain types of differential mechanism
-     * @param tolerance tolerance for the accumulated error from BOTH motors combined
      */
-    public Differential(DifferentialMotor differentialMotor, Gains gains, double differentialMul, double tolerance) {
+    public Differential(DifferentialMotor differentialMotor, Gains gains, double differentialMul) {
         super(differentialMotor);
 
         this.motor = differentialMotor;
@@ -52,7 +51,7 @@ public class Differential extends Mechanism {
      * @param differentialMotor
      */
     public Differential(DifferentialMotor differentialMotor) {
-        this(differentialMotor, new Gains(),1, 20);
+        this(differentialMotor, new Gains(),1);
     }
 
     public Command moveToStateCommand(double angle, double position, double ff, SubsystemBase... requirements){

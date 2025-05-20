@@ -126,9 +126,11 @@ public class Gains {
         return new PIDController(this.kp, this.ki, this.kd);
     }
 
-
-    public <GenericFeedFoward extends FeedForwardGainsSetter> GenericFeedFoward applyGains(GenericFeedFoward feedFoward){
-        feedFoward.setValues(this.ks, this.kv, this.ka, this.kg);
-        return feedFoward;
+    public <GenericFeedFoward extends FeedForwardGainsSetter> GenericFeedFoward applyGains(GenericFeedFoward feedForward){
+        feedForward.setKv(this.kv);
+        feedForward.setKs(this.ks);
+        feedForward.setKa(this.ka);
+        feedForward.setKg(this.kg);
+        return feedForward;
     }
 }
