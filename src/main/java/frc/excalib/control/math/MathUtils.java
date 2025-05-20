@@ -1,7 +1,10 @@
 package frc.excalib.control.math;
 
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+
+import java.util.Optional;
 
 /**
  * Utility class for mathematical operations and geometry-related calculations.
@@ -11,7 +14,7 @@ public class MathUtils {
     /**
      * Ensures that the absolute value of the given number does not exceed the specified limit.
      *
-     * @param value       The value to be limited.
+     * @param value     The value to be limited.
      * @param sizeLimit The maximum allowable absolute value.
      * @return The value limited to the specified maximum absolute value, preserving its sign.
      */
@@ -34,10 +37,38 @@ public class MathUtils {
     }
 
     /**
+     * Limits a value in continuous system
+     *
+     * @param value the value to limit
+     * @param currentPosition the current position of the system
+     * @return if the value and the current position are equals - empty optional, else the limited values in range of maximum 180 degrees (in every direction) from the current position
+     */
+    public static Optional<Pair<Double, Double>> continuousLimit(double value, double currentPosition) {
+        double upperLimitedValue, lowerLimitedValue;
+        if (value == currentPosition) {
+            return Optional.empty();
+        }
+        if (value > currentPosition) {
+            upperLimitedValue = value;
+            while ((upperLimitedValue - 2 * Math.PI) > currentPosition) {
+                upperLimitedValue -= 2 * Math.PI;
+            }
+            lowerLimitedValue = upperLimitedValue - 2 * Math.PI;
+            return Optional.of(Pair.of(upperLimitedValue, lowerLimitedValue));
+        }
+        lowerLimitedValue = value;
+        while ((lowerLimitedValue + 2 * Math.PI) < currentPosition) {
+            lowerLimitedValue += 2 * Math.PI;
+        }
+        upperLimitedValue = lowerLimitedValue + 2 * Math.PI;
+        return Optional.of(Pair.of(upperLimitedValue, lowerLimitedValue));
+    }
+
+    /**
      * Calculates the optimal target position for a robot to reach a target while avoiding a circular obstacle.
      *
-     * @param robot      The current position of the robot as a Translation2d.
-     * @param target     The target position as a Translation2d.
+     * @param robot          The current position of the robot as a Translation2d.
+     * @param target         The target position as a Translation2d.
      * @param obstacleCenter The center of the obstacle as a Translation2d.
      * @return The optimal target position as a Translation2d.
      */
