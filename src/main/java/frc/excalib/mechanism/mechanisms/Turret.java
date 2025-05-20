@@ -1,5 +1,6 @@
 package frc.excalib.mechanism.mechanisms;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -7,7 +8,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.excalib.control.GenericFF.GenericFF;
+import frc.excalib.control.gains.GenericFF;
 import frc.excalib.control.gains.Gains;
 import frc.excalib.control.limits.ContinuousSoftLimit;
 import frc.excalib.control.motor.Motor;
@@ -26,7 +27,7 @@ public final class Turret extends Mechanism {
     private final ContinuousSoftLimit m_rotationLimit;
 
     private double m_setpoint, m_tolerance;
-    public final Trigger atSetpointTrigger = new Trigger(()-> Math.abs(this.m_setpoint - super.logMechanismPosition()) < m_tolerance);
+    public final Trigger atSetpointTrigger = new Trigger(()-> MathUtil.isNear(this.m_setpoint, super.logMechanismPosition(), m_tolerance));
 
     /**
      * @param motor the turret's motor
@@ -75,7 +76,7 @@ public final class Turret extends Mechanism {
     public void setPosition(double setpoint) {
         this.m_setpoint = setpoint;
 
-        double limitedSetpoint = m_rotationLimit.getSetPoint(super.logMechanismPosition(), setpoint);
+        double limitedSetpoint = m_rotationLimit.getSetpoint(super.logMechanismPosition(), setpoint);
         double pid = m_pidController.calculate(super.logMechanismPosition(), limitedSetpoint);
         double ff = m_ffController.getKs() * Math.signum(pid);
         super.setVoltage(pid + ff);

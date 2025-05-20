@@ -1,5 +1,6 @@
 package frc.excalib.control.limits;
 
+import edu.wpi.first.math.MathUtil;
 import monologue.Annotations.Log;
 import monologue.Logged;
 
@@ -44,13 +45,7 @@ public class SoftLimit implements Logged {
      */
     @Log.NT
     public double limit(double val) {
-        if (within(val)) {
-            return val;
-        }
-        if (val > m_maxLimit.getAsDouble()) {
-            return m_maxLimit.getAsDouble();
-        }
-        return m_minLimit.getAsDouble();
+        return MathUtil.clamp(val, m_minLimit.getAsDouble(), m_maxLimit.getAsDouble());
     }
 
     /**

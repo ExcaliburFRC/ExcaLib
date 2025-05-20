@@ -1,12 +1,13 @@
 package frc.excalib.mechanism.mechanisms;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.excalib.control.GenericFF.GenericFF;
+import frc.excalib.control.gains.GenericFF;
 import frc.excalib.control.gains.Gains;
 import frc.excalib.control.motor.Motor;
 import frc.excalib.mechanism.Mechanism;
@@ -20,9 +21,8 @@ public class FlyWheel extends Mechanism {
     private final PIDController m_pidController;
     private final SimpleMotorFeedforward m_ffController;
 
-
     private double m_setpoint, m_tolerance;
-    public final Trigger atSetpointTrigger = new Trigger(()-> Math.abs(this.m_setpoint - super.logMechanismPosition()) < m_tolerance);
+    public final Trigger atSetpointTrigger = new Trigger(()-> MathUtil.isNear(this.m_setpoint, super.logMechanismPosition(), m_tolerance));
 
     /**
      * @param motor the FlyWheel Motor

@@ -1,11 +1,18 @@
-package frc.excalib.control.GenericFF;
+package frc.excalib.control.gains;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 
 public class GenericFF {
-    public static class ArmFF extends ArmFeedforward implements FeedForwardGainsSetter {
+    public interface GenericFeedForward {
+        void setKs(double Ks);
+        void setKv(double Kv);
+        void setKa(double Ka);
+        void setKg(double Kg);
+    }
+
+    public static class ArmFF extends ArmFeedforward implements GenericFeedForward {
         public ArmFF() {
             super(0, 0, 0, 0);
         }
@@ -34,7 +41,7 @@ public class GenericFF {
         }
     }
 
-    public static class SimpleFF extends SimpleMotorFeedforward implements FeedForwardGainsSetter {
+    public static class SimpleFF extends SimpleMotorFeedforward implements GenericFeedForward {
         public SimpleFF() {
             super(0, 0, 0);
         }
@@ -66,7 +73,7 @@ public class GenericFF {
         }
     }
 
-    public static class ElevatorFF extends ElevatorFeedforward implements FeedForwardGainsSetter {
+    public static class ElevatorFF extends ElevatorFeedforward implements GenericFeedForward {
         public ElevatorFF() {
             super(0, 0, 0, 0);
         }

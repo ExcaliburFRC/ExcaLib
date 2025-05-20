@@ -79,9 +79,9 @@ public class Cannon extends SubsystemBase {
     }
 
     public Command shootToPositionCommand(DoubleSupplier rotation, DoubleSupplier pitch) {
-        return new ParallelCommandGroup(
-                moveToPositionCommand(rotation, pitch),
-                new WaitUntilCommand(turret.atSetpointTrigger.and(arm.atSetpointTrigger)).andThen(shootCommand())
+        return moveToPositionCommand(rotation, pitch)
+                .until(turret.atSetpointTrigger.and(arm.atSetpointTrigger))
+                .andThen(shootCommand()
         );
     }
 

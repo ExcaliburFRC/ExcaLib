@@ -1,7 +1,6 @@
 package frc.excalib.control.gains;
 
 import edu.wpi.first.math.controller.PIDController;
-import frc.excalib.control.GenericFF.FeedForwardGainsSetter;
 
 
 /**
@@ -126,7 +125,7 @@ public class Gains {
         return new PIDController(this.kp, this.ki, this.kd);
     }
 
-    public <GenericFeedFoward extends FeedForwardGainsSetter> GenericFeedFoward applyGains(GenericFeedFoward feedForward){
+    public <GenericFeedFoward extends GenericFF.GenericFeedForward> GenericFeedFoward applyGains(GenericFeedFoward feedForward){
         feedForward.setKv(this.kv);
         feedForward.setKs(this.ks);
         feedForward.setKa(this.ka);
