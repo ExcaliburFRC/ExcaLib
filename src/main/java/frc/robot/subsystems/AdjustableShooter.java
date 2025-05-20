@@ -2,7 +2,6 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.*;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.excalib.control.gains.GenericFF;
 import frc.excalib.control.motor.controllers.SparkFlexMotor;
 import frc.excalib.control.motor.controllers.TalonFXMotor;
@@ -18,7 +17,7 @@ import static frc.robot.Constants.CannonConstants.*;
 
 public class AdjustableShooter extends SubsystemBase{
     // Subsystem Hardware components
-    private final SparkFlexMotor flywheelMotorA, flywhellMotorB;
+    private final SparkFlexMotor flywheelMotorA, flywheelMotorB;
     private final TalonFXMotor hoodMotor;
 
     // Subsystem mechanisms
@@ -28,15 +27,15 @@ public class AdjustableShooter extends SubsystemBase{
     public AdjustableShooter() {
         // initialize hardware
         this.flywheelMotorA = new SparkFlexMotor(1, kBrushless);
-        this.flywhellMotorB = new SparkFlexMotor(2, kBrushless);
+        this.flywheelMotorB = new SparkFlexMotor(2, kBrushless);
 
         this.hoodMotor = new TalonFXMotor(3);
 
         // reverse one of the motors in the gearbox
-        this.flywhellMotorB.setInverted(DirectionState.REVERSE);
+        this.flywheelMotorB.setInverted(DirectionState.REVERSE);
 
         // setup shooterMotors conversion factors
-        MotorGroup shooterMotors = new MotorGroup(flywheelMotorA, flywhellMotorB);
+        MotorGroup shooterMotors = new MotorGroup(flywheelMotorA, flywheelMotorB);
         shooterMotors.setPositionConversionFactor(TURRET_POSITION_CONVERSION_FACTOR);
         shooterMotors.setVelocityConversionFactor(TURRET_VELOCITY_CONVERSION_FACTOR);
 
@@ -46,9 +45,9 @@ public class AdjustableShooter extends SubsystemBase{
         this.shooter = new ControlVelocityMechanism(shooterMotors, ARM_GAINS, ARM_TOLERANCE,
                 (position, velocity)-> ARM_GAINS.applyGains(new GenericFF.SimpleFF()).calculate(velocity));
 
-        this.hood.withLimits(TURRET_SOFT_LIMIT);
+        this.hood.addLimit(TURRET_SOFT_LIMIT);
 
-        setDefaultCommand(moveHoodToPositionCommand(() -> 0));
+        setDefaultCommand(setShooterStateCommand(() -> 0, ()-> 0));
     }
 
     private Command moveHoodToPositionCommand(DoubleSupplier position) {

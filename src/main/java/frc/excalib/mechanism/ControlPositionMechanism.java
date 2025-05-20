@@ -24,10 +24,6 @@ public class ControlPositionMechanism extends Mechanism{
     private double m_setpoint, m_tolerance;
     public final Trigger atSetpointTrigger = new Trigger(()-> MathUtil.isNear(this.m_setpoint, super.logMechanismPosition(), m_tolerance));
 
-    /**
-     * @param motor the FlyWheel Motor
-     * @param gains the FF and PID gains
-     */
     public ControlPositionMechanism(Motor motor, Gains gains, double tolerance,
                                     BiFunction<Double, Double, Double> feedforwardCalculator) {
         super(motor);
@@ -57,7 +53,7 @@ public class ControlPositionMechanism extends Mechanism{
         }, requirements);
     }
 
-    public void withLimits(SoftLimit limit){
+    public void addLimit(SoftLimit limit){
         this.limit = limit;
     }
 
