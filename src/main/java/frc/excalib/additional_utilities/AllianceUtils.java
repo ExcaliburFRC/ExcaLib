@@ -15,8 +15,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import static edu.wpi.first.wpilibj.DriverStation.Alliance.Blue;
 
 /**
- * the purpose of this class is to supply different utility functions for functionality
- * that depends on the robot alliance.
+ * the purpose of this class is to supply different utility functions for functionality that depends on the robot alliance.
  */
 public class AllianceUtils {
     public static final double FIELD_LENGTH_METERS = 17.548;
@@ -79,15 +78,6 @@ public class AllianceUtils {
         private final Pose2d m_pose;
 
         /**
-         * @param x               the x component
-         * @param y               the y component
-         * @param rotationRadians the rotation component in radians
-         */
-        public AlliancePose(double x, double y, double rotationRadians) {
-            this.m_pose = new Pose2d(x, y, new Rotation2d(rotationRadians));
-        }
-
-        /**
          * @param translation the translation component
          * @param rotation    the rotation component
          */
@@ -96,10 +86,19 @@ public class AllianceUtils {
         }
 
         /**
+         * @param x               the x component
+         * @param y               the y component
+         * @param rotationRadians the rotation component in radians
+         */
+        public AlliancePose(double x, double y, double rotationRadians) {
+            this(new Translation2d(x, y), new Rotation2d(rotationRadians));
+        }
+
+        /**
          * @param pose the pose
          */
         public AlliancePose(Pose2d pose) {
-            this.m_pose = new Pose2d(pose.getTranslation(), pose.getRotation());
+            this(pose.getTranslation(), pose.getRotation());
         }
 
         /**
@@ -108,7 +107,11 @@ public class AllianceUtils {
          * @param rotationRadians the rotation component in radians
          */
         public AlliancePose(double rotationRadians) {
-            this.m_pose = new Pose2d(0, 0, new Rotation2d(rotationRadians));
+            this(new Translation2d(0, 0), new Rotation2d(rotationRadians));
+        }
+
+        public AlliancePose() {
+            this(0, 0, 0);
         }
 
         /**

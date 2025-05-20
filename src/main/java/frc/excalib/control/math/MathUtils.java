@@ -38,7 +38,7 @@ public class MathUtils {
      *
      * @param robot      The current position of the robot as a Translation2d.
      * @param target     The target position as a Translation2d.
-     * @param obstacleCenter The center of the reef as a Translation2d.
+     * @param obstacleCenter The center of the obstacle as a Translation2d.
      * @return The optimal target position as a Translation2d.
      */
     public static Translation2d getTargetPose(Translation2d robot, Translation2d target, Translation2d obstacleCenter) {
@@ -53,7 +53,7 @@ public class MathUtils {
             return target;
         }
 
-        // If no tangents exist, calculate a point on the reef perimeter and find the intersection.
+        // If no tangents exist, calculate a point on the obstacle perimeter and find the intersection.
         if (tangents.length == 0) {
             Translation2d onPerimeter = obstacleCenter.plus(new Translation2d(radius, robot.minus(obstacleCenter).getAngle()));
             Line tangent = c.getTangent(onPerimeter);
