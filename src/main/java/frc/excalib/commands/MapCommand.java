@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 public class MapCommand<T> extends Command {
     private final Map<T, Command> m_map; // A map that associates keys of type T with commands.
     private Command m_command; // The currently selected command to execute.
-    private Supplier<T> m_t; // A supplier that provides the key to select the command.
+    private final Supplier<T> m_t; // A supplier that provides the key to select the command.
 
     /**
      * Constructs a new MapCommand.
@@ -55,11 +55,11 @@ public class MapCommand<T> extends Command {
     /**
      * Ends the currently selected command.
      *
-     * @param inturupted Whether the command was interrupted.
+     * @param interrupted Whether the command was interrupted.
      */
     @Override
-    public void end(boolean inturupted) {
-        m_command.end(inturupted);
+    public void end(boolean interrupted) {
+        m_command.end(interrupted);
     }
 
     /**
