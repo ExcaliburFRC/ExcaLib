@@ -5,7 +5,7 @@
  * learn more at - https://github.com/ExaliburFRC/ExcaLIb
  */
 
-package frc.excalib.mechanisms;
+package frc.excalib.mechanism;
 
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj2.command.*;

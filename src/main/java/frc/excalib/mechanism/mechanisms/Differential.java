@@ -1,11 +1,11 @@
-package frc.excalib.mechanisms.mechanical_mechanisms;
+package frc.excalib.mechanism.mechanisms;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.excalib.control.gains.Gains;
 import frc.excalib.control.motor.motorType.DifferentialMotor;
 import frc.excalib.control.motor.motor_specs.IdleState;
-import frc.excalib.mechanisms.Mechanism;
+import frc.excalib.mechanism.Mechanism;
 import monologue.Annotations.Log;
 
 import java.util.function.DoubleSupplier;

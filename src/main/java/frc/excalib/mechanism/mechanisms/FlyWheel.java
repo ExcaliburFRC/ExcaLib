@@ -1,4 +1,4 @@
-package frc.excalib.mechanisms.mechanical_mechanisms;
+package frc.excalib.mechanism.mechanisms;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.excalib.control.GenericFF.GenericFF;
 import frc.excalib.control.gains.Gains;
 import frc.excalib.control.motor.Motor;
-import frc.excalib.mechanisms.Mechanism;
+import frc.excalib.mechanism.Mechanism;
 
 import java.util.function.DoubleSupplier;
 

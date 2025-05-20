@@ -9,8 +9,8 @@ import frc.excalib.control.motor.controllers.SparkFlexMotor;
 import frc.excalib.control.motor.controllers.TalonFXMotor;
 import frc.excalib.control.motor.motorType.MotorGroup;
 import frc.excalib.control.motor.motor_specs.DirectionState;
-import frc.excalib.mechanisms.mechanical_mechanisms.Arm;
-import frc.excalib.mechanisms.mechanical_mechanisms.Turret;
+import frc.excalib.mechanism.mechanisms.Arm;
+import frc.excalib.mechanism.mechanisms.Turret;
 
 import java.util.function.DoubleSupplier;
 
