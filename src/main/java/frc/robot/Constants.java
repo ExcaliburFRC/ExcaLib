@@ -3,6 +3,7 @@ package frc.robot;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import frc.excalib.control.gains.Gains;
 import frc.excalib.control.limits.ContinuousSoftLimit;
+import frc.excalib.control.limits.SoftLimit;
 
 public class Constants {
     public static final class CannonConstants{
@@ -23,6 +24,8 @@ public class Constants {
         // arm constants
         public static final Gains ARM_GAINS = new Gains(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7);
         public static final TrapezoidProfile.Constraints ARM_CONSTRAINTS = new TrapezoidProfile.Constraints(6.28, 3.14);
+
+        public static final SoftLimit ARM_SOFT_LIMITS = new SoftLimit(()-> 0, ()-> 90);
 
         public static final double ARM_POSITION_CONVERSION_FACTOR = 1.0 / 452.0 * 360;
         public static final double ENCODER_OFFSET = 18.75; // deg

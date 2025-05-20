@@ -40,13 +40,12 @@ public class ContinuousSoftLimit extends SoftLimit {
             // Only candidate2 is valid
             return candidate2;
 
-            // Neither of the primary cyclic candidates are valid.
-            // This means the 'wantedSetPoint' is unreachable given the current `measurement`
-            // and the `minLimit`/`maxLimit` constraints.
-            // In this case, the most robust action is to clamp the desired setpoint
-            // to the absolute bounds of the soft limit. This ensures the returned value
-            // is always within the safe range.
+        // Neither of the primary cyclic candidates are valid.
+        // This means the 'wantedSetPoint' is unreachable given the current `measurement`
+        // and the `minLimit`/`maxLimit` constraints.
+        // In this case, the most robust action is to clamp the desired setpoint
+        // to the absolute bounds of the soft limit. This ensures the returned value
+        // is always within the safe range.
         return super.limit(wantedSetPoint);
-        }
     }
 }

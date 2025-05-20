@@ -4,12 +4,14 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.excalib.control.encoder.DutyCycleEncoder;
+import frc.excalib.control.gains.GenericFF;
 import frc.excalib.control.motor.Piston;
 import frc.excalib.control.motor.controllers.SparkFlexMotor;
 import frc.excalib.control.motor.controllers.TalonFXMotor;
 import frc.excalib.control.motor.motorType.MotorGroup;
 import frc.excalib.control.motor.motor_specs.DirectionState;
 import frc.excalib.mechanism.mechanisms.Arm;
+import frc.excalib.mechanism.mechanisms.LinearExtension;
 import frc.excalib.mechanism.mechanisms.Turret;
 
 import java.util.function.DoubleSupplier;

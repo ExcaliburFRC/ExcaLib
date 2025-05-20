@@ -8,4 +8,8 @@ public class Swerve {
     public double getPitchToTarget(){
         return 0;
     }
+
+    public double getDistanceFromTarget(){
+        return 0;
+    }
 }

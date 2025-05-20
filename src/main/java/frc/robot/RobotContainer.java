@@ -5,34 +5,45 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
+import frc.robot.subsystems.AdjustableShooter;
 import frc.robot.subsystems.Cannon;
 import frc.robot.subsystems.Swerve;
 
 public class RobotContainer {
-  Cannon cannon = new Cannon();
-  Swerve swerve = new Swerve();
+    Cannon cannon = new Cannon();
+    AdjustableShooter adjShooter = new AdjustableShooter();
+    Swerve swerve = new Swerve();
 
-  CommandPS5Controller controller = new CommandPS5Controller(0);
+    InterpolatingDoubleTreeMap velInterpolate = new InterpolatingDoubleTreeMap();
+    InterpolatingDoubleTreeMap angleInterpolate = new InterpolatingDoubleTreeMap();
 
-  public RobotContainer() {
-    configureBindings();
-  }
+    CommandPS5Controller controller = new CommandPS5Controller(0);
 
-  private void configureBindings() {
+    public RobotContainer() {
+        configureBindings();
+    }
 
-    // move and shoot to target when cross is pressed
-    controller.cross().onTrue(cannon.shootToPositionCommand(swerve::getRotationToTarget, swerve::getPitchToTarget));
+    private void configureBindings() {
 
-    // toggle manual control when pressing square
-    controller.square().toggleOnTrue(cannon.manualControlCommand(
-            controller::getRightX, controller::getLeftY, controller.L1() //move the turret with joysticks, shoot with L1
-    ));
-  }
+        // move and shoot to target when cross is pressed
+        controller.cross().onTrue(cannon.shootToPositionCommand(swerve::getRotationToTarget, swerve::getPitchToTarget));
 
-  public Command getAutonomousCommand() {
-    return Commands.print("No autonomous command configured");
-  }
+        // toggle manual control when pressing square
+        controller.square().toggleOnTrue(cannon.manualControlCommand(
+                controller::getRightX, controller::getLeftY, controller.L1() //move the turret with joysticks, shoot with L1
+        ));
+
+        controller.triangle().onTrue(adjShooter.setShooterStateCommand(
+                () -> velInterpolate.get(swerve.getDistanceFromTarget()),
+                () -> angleInterpolate.get(swerve.getDistanceFromTarget())
+        ));
+    }
+
+    public Command getAutonomousCommand() {
+        return Commands.print("No autonomous command configured");
+    }
 }
