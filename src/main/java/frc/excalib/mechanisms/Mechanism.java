@@ -41,15 +41,9 @@ public class Mechanism implements Logged {
     /**
      * @param motor the motor controlling the mechanism
      */
-    public Mechanism(Motor motor, Encoder externalEncoder) {
+    public Mechanism(Motor motor) {
         m_motor = motor;
         m_DEFAULT_IDLE_STATE = m_motor.getIdleState();
-
-        m_externalEncoder = externalEncoder;
-    }
-
-    public Mechanism(Motor motor){
-        this(motor, null);
     }
 
     /**

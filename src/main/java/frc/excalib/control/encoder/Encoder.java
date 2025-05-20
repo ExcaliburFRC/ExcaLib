@@ -10,7 +10,5 @@ public interface Encoder {
 
     double getVelocity();
 
-    void setPosition(double position);
-
-    void setInverted(boolean inverted);
+    void setPosition(double position, boolean offset);
 }

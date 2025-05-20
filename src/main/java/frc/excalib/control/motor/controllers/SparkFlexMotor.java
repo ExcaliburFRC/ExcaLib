@@ -18,10 +18,10 @@ import static frc.excalib.control.motor.motor_specs.IdleState.COAST;
  * This class represents a implemantation of a motor controller
  * using the Vortex Motor.
  */
-public class FlexMotor extends SparkFlex implements Motor {
+public class SparkFlexMotor extends SparkFlex implements Motor {
     private final SparkFlexConfig m_config = new SparkFlexConfig();
 
-    public FlexMotor(int deviceId, MotorType type) {
+    public SparkFlexMotor(int deviceId, MotorType type) {
         super(deviceId, type);
     }
 

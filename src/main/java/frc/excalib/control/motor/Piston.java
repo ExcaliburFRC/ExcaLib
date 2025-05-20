@@ -10,8 +10,8 @@ public class Piston {
     private final DoubleSolenoid piston;
     private DirectionState direction;
 
-    public Piston(int fwdID, int revID){
-        this.piston = new DoubleSolenoid(PneumaticsModuleType.REVPH, fwdID, revID);
+    public Piston(int fwdID, int revID, PneumaticsModuleType moduleType){
+        this.piston = new DoubleSolenoid(moduleType, fwdID, revID);
         this.direction = DirectionState.REVERSE;
     }
 

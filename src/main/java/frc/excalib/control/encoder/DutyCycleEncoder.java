@@ -29,7 +29,7 @@ public class DutyCycleEncoder extends edu.wpi.first.wpilibj.DutyCycleEncoder imp
     }
 
     @Override
-    public void setPosition(double position) {
-        this.position = position;
+    public void setPosition(double position, boolean offset) {
+        this.position = offset? -position : position;
     }
 }
