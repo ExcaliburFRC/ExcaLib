@@ -40,7 +40,7 @@ public class AllianceUtils {
     }
 
     /**
-     * Converts a pose to the pose relative to the current driver station alliance by rotating it if needed.
+     * Converts a pose to a new pose relative to the current driver station alliance by rotating it if needed.
      *
      * @param pose the current blue alliance pose
      * @return the converted Pose2d pose
@@ -56,7 +56,7 @@ public class AllianceUtils {
     }
 
     /**
-     * Converts a pose to the pose relative to the current driver station alliance by mirroring it if needed.
+     * Converts a pose to a new pose relative to the current driver station alliance by mirroring it if needed.
      *
      * @param pose the current blue alliance pose
      * @return the converted Pose2d pose
