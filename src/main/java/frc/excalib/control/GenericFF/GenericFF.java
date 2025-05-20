@@ -11,34 +11,26 @@ public class GenericFF {
         }
 
         @Override
-        public void setKs(double kS) {
-            super.setKs(kS);
+        public void setKs(double Ks) {
+            super.setKs(Ks);
         }
 
 
         @Override
-        public void setKv(double kV) {
-            super.setKv(kV);
+        public void setKv(double Kv) {
+            super.setKv(Kv);
         }
 
 
         @Override
-        public void setKa(double kA) {
-            super.setKa(kA);
+        public void setKa(double Ka) {
+            super.setKa(Ka);
         }
 
 
         @Override
-        public void setKg(double kG) {
-            super.setKg(kG);
-        }
-
-        @Override
-        public void setValue(double kS, double kV, double kA, double kG) {
-            setKa(kA);
-            setKs(kS);
-            setKv(kV);
-            setKg(kG);
+        public void setKg(double Kg) {
+            super.setKg(Kg);
         }
     }
 
@@ -49,37 +41,28 @@ public class GenericFF {
 
 
         @Override
-        public void setKs(double kS) {
-            super.setKs(kS);
+        public void setKs(double Ks) {
+            super.setKs(Ks);
         }
 
 
         @Override
-        public void setKv(double kV) {
-            super.setKv(kV);
+        public void setKv(double Kv) {
+            super.setKv(Kv);
         }
 
 
         @Override
-        public void setKa(double kA) {
-            super.setKa(kA);
+        public void setKa(double Ka) {
+            super.setKa(Ka);
         }
 
 
         @Override
-        public void setKg(double kG) {
+        public void setKg(double Kg) {
+            if (Kg != 0) throw new IllegalArgumentException("SimpleMotorFeedforward does not support gravity gain (Kg), please make it zero!");
+
             return;
-        }
-
-        @Override
-        public void setValue(double kS, double kV, double kA, double kG) {
-            if (kG != 0) {
-                throw new IllegalArgumentException("SimpleMotorFeedforward does not support gravity gain (kG), please make it zero!");
-            }
-            setKa(kA);
-            setKs(kS);
-            setKv(kV);
-            setKg(kG);
         }
     }
 
@@ -90,35 +73,26 @@ public class GenericFF {
 
 
         @Override
-        public void setKs(double kS) {
-            super.setKs(kS);
+        public void setKs(double Ks) {
+            super.setKs(Ks);
         }
 
 
         @Override
-        public void setKv(double kV) {
-            super.setKv(kV);
+        public void setKv(double Kv) {
+            super.setKv(Kv);
         }
 
 
         @Override
-        public void setKa(double kA) {
-            super.setKa(kA);
+        public void setKa(double Ka) {
+            super.setKa(Ka);
         }
 
 
         @Override
-        public void setKg(double kG) {
-            super.setKg(kG);
+        public void setKg(double Kg) {
+            super.setKg(Kg);
         }
-
-        @Override
-        public void setValue(double kS, double kV, double kA, double kG) {
-            setKa(kA);
-            setKs(kS);
-            setKv(kV);
-            setKg(kG);
-        }
-
     }
 }

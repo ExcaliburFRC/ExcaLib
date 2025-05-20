@@ -2,9 +2,8 @@ package frc.excalib.mechanisms.turret;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.excalib.control.GenericFF.GenericFF;
@@ -14,67 +13,62 @@ import frc.excalib.control.motor.Motor;
 import frc.excalib.mechanisms.Mechanism;
 
 import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
 
 /**
  * A class representing a Turret Mechanism
  */
 public final class Turret extends Mechanism {
+    private final PIDController m_pidController;
+    private final SimpleMotorFeedforward m_ffController;
+
+    private final TrapezoidProfile m_profile;
     private final ContinuousSoftLimit m_rotationLimit;
-    private final PIDController m_anglePIDcontroller;
-    private final SimpleMotorFeedforward m_angleFFcontroller;
-    private final DoubleSupplier m_POSITION_SUPPLIER;
 
     /**
-     * @param motor the turrets motor
+     * @param motor the turret's motor
      * @param rotationLimit the rotational boundary for the turret (radians)
      * @param angleGains pid gains for the turret
-     * @param PIDtolerance pid tolerance for the turret (radians)
-     * @param positionSupplier the position measurement
+     * @param constraints constraints for the TrapezoidProfile
      */
-    public Turret(Motor motor, ContinuousSoftLimit rotationLimit, Gains angleGains, double PIDtolerance, DoubleSupplier positionSupplier) {
+    public Turret(Motor motor, ContinuousSoftLimit rotationLimit, Gains angleGains, TrapezoidProfile.Constraints constraints) {
         super(motor);
         m_rotationLimit = rotationLimit;
 
-        m_anglePIDcontroller = angleGains.getPIDcontroller();
-        m_angleFFcontroller = angleGains.applyGains(new GenericFF.SimpleFF());
+        m_pidController = angleGains.getPIDcontroller();
+        m_ffController = angleGains.applyGains(new GenericFF.SimpleFF());
 
-        m_anglePIDcontroller.setTolerance(PIDtolerance);
-        m_anglePIDcontroller.enableContinuousInput(-Math.PI, Math.PI);
+        m_pidController.enableContinuousInput(-Math.PI, Math.PI);
 
-        m_POSITION_SUPPLIER = positionSupplier;
+        m_profile = new TrapezoidProfile(constraints);
     }
 
     /**
-     * @param wantedPosition a Rotation2d dynamic setpoint
-     * @return a Command that moves the turret tho the given setpoint
+     * moves the Turret to a Dynamic position with a Trapezoid profile
+     * @param position position supplier
+     * @param requirements subsystem requirements
+     * @return the command to move the Turret
      */
-    public Command setPositionCommand(Supplier<Rotation2d> wantedPosition, SubsystemBase... requirements){
-        return new RunCommand(()-> setPosition(wantedPosition.get()), requirements);
+    public Command setDynamicPositionCommand(DoubleSupplier position, SubsystemBase... requirements){
+        return new RunCommand(() -> {
+            TrapezoidProfile.State state = m_profile.calculate(
+                    0.02,
+                    new TrapezoidProfile.State(
+                            super.logMechanismPosition(),
+                            super.logMechanismVelocity()),
+                    new TrapezoidProfile.State(position.getAsDouble(), 0)
+            );
+            setPosition(state.position);
+        }, requirements);
     }
 
-    /**
-     * moves the turret to the desired position
-     * @param wantedPosition the wanted position of the turret.
-     */
-    public void setPosition(Rotation2d wantedPosition) {
-        double smartSetPoint = m_rotationLimit.getSetPoint(getPosition().getRadians(), wantedPosition.getRadians());
-        double pid = m_anglePIDcontroller.calculate(m_POSITION_SUPPLIER.getAsDouble(), smartSetPoint);
-//        double ff =m_angleFFcontroller.getKs() * Math.signum(pid);
-        super.setVoltage(pid);
-    }
-
-    /**
-     * @return get the position if the turret
-     */
-    public Rotation2d getPosition() {
-        return new Rotation2d(m_POSITION_SUPPLIER.getAsDouble());
-    }
-
-    /**
-     * @return an Instant Command to stop the turret
-     */
-    public Command stopTurret(SubsystemBase... requirements) {
-        return new InstantCommand(super.m_motor::stopMotor, requirements);
+        /**
+         * moves the turret to the desired position
+         * @param setpoint the wanted position of the turret.
+         */
+    public void setPosition(double setpoint) {
+        double limitedSetpoint = m_rotationLimit.getSetPoint(super.logMechanismPosition(), setpoint);
+        double pid = m_pidController.calculate(super.logMechanismPosition(), limitedSetpoint);
+        double ff = m_ffController.getKs() * Math.signum(pid);
+        super.setVoltage(pid + ff);
     }
 }

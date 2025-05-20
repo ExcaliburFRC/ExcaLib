@@ -128,7 +128,7 @@ public class Gains {
 
 
     public <GenericFeedFoward extends FeedForwardGainsSetter> GenericFeedFoward applyGains(GenericFeedFoward feedFoward){
-        feedFoward.setValue(this.ks, this.kv, this.ka, this.kg);
+        feedFoward.setValues(this.ks, this.kv, this.ka, this.kg);
         return feedFoward;
     }
 }

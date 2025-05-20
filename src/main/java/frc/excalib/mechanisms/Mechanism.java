@@ -10,6 +10,7 @@ package frc.excalib.mechanisms;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.excalib.control.encoder.Encoder;
 import frc.excalib.control.gains.SysidConfig;
 import frc.excalib.control.motor.Motor;
 import frc.excalib.control.motor.motorType.DifferentialMotor;
@@ -27,19 +28,28 @@ import static monologue.Annotations.Log;
  */
 public class Mechanism implements Logged {
     protected final Motor m_motor;
+    private final IdleState m_DEFAULT_IDLE_STATE;
+
+    private Encoder m_externalEncoder;
+
     protected final MutVoltage m_appliedVoltage = Volts.mutable(0);
     protected final MutAngle m_radians = Radians.mutable(0);
     protected final MutDistance m_meter = Meters.mutable(0);
     protected final MutAngularVelocity m_velocity = RadiansPerSecond.mutable(0);
     protected final MutLinearVelocity m_Linearvelocity = MetersPerSecond.mutable(0);
-    private final IdleState m_DEFAULT_IDLE_STATE;
 
     /**
      * @param motor the motor controlling the mechanism
      */
-    public Mechanism(Motor motor) {
+    public Mechanism(Motor motor, Encoder externalEncoder) {
         m_motor = motor;
         m_DEFAULT_IDLE_STATE = m_motor.getIdleState();
+
+        m_externalEncoder = externalEncoder;
+    }
+
+    public Mechanism(Motor motor){
+        this(motor, null);
     }
 
     /**
@@ -64,6 +74,10 @@ public class Mechanism implements Logged {
         ((DifferentialMotor) this.m_motor).setDifferentialVoltage(voltageA, voltageB);
     }
 
+    public void addExternalEncoder(Encoder externalEncoder){
+        m_externalEncoder = externalEncoder;
+    }
+
     /**
      * @param outputSupplier the dynamic setpoint for the mechanism (voltage)
      * @return a command which controls the mechanism manually
@@ -79,7 +93,7 @@ public class Mechanism implements Logged {
     /**
      * @return an instant command to stop the motor
      */
-    public Command stopMotorCommand(SubsystemBase... requirements) {
+    public Command stopMechnismCommand(SubsystemBase... requirements) {
         return new InstantCommand(() -> setOutput(0), requirements);
     }
 
@@ -87,16 +101,18 @@ public class Mechanism implements Logged {
      * @return the velocity
      */
     @Log.NT
-    public double logVelocity() {
-        return m_motor.getMotorVelocity();
+    public double logMechanismVelocity() {
+        if (m_externalEncoder == null) return m_motor.getMotorVelocity();
+        return m_externalEncoder.getVelocity();
     }
 
     /**
      * @return the position
      */
     @Log.NT
-    public double logPosition() {
-        return m_motor.getMotorPosition();
+    public double logMechanismPosition() {
+        if (m_externalEncoder == null) return m_motor.getMotorPosition();
+        return m_externalEncoder.getPosition();
     }
 
     @Log.NT
@@ -126,7 +142,7 @@ public class Mechanism implements Logged {
                                 .voltage(m_appliedVoltage.mut_replace(
                                         m_motor.getVoltage(), Volts))
                                 .linearPosition(m_meter.mut_replace(sensorInput.getAsDouble(), Meters))
-                                .linearVelocity(m_Linearvelocity.mut_replace(logVelocity(), MetersPerSecond)),
+                                .linearVelocity(m_Linearvelocity.mut_replace(logMechanismVelocity(), MetersPerSecond)),
                         subsystem
                 )
         );
@@ -149,7 +165,7 @@ public class Mechanism implements Logged {
                                 .voltage(m_appliedVoltage.mut_replace(
                                         m_motor.getVoltage(), Volts))
                                 .angularPosition(m_radians.mut_replace(sensorInput.getAsDouble(), Radians))
-                                .angularVelocity(m_velocity.mut_replace(logVelocity(), RadiansPerSecond)),
+                                .angularVelocity(m_velocity.mut_replace(logMechanismVelocity(), RadiansPerSecond)),
                         subsystem
                 )
         );

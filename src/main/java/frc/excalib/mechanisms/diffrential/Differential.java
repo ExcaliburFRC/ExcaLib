@@ -5,6 +5,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.excalib.control.GenericFF.FeedForwardGainsSetter;
 import frc.excalib.control.GenericFF.GenericFF;
 import frc.excalib.control.gains.Gains;
 import frc.excalib.control.motor.motorType.DifferentialMotor;
@@ -16,13 +17,9 @@ import monologue.Annotations.Log;
 import java.util.function.DoubleSupplier;
 
 public class Differential extends Mechanism {
-    private final Gains gains;
     private final PIDController pidController_A, pidController_B;
-    private final ArmFeedforward ffController;
 
     private final DifferentialMotor motor;
-
-    public final Trigger atSetpointTrigger;
 
     private final double differentialMul;
 
@@ -44,12 +41,8 @@ public class Differential extends Mechanism {
         this.motor = differentialMotor;
         this.motor.setIdleState(IdleState.BRAKE);
 
-        this.gains = gains;
-        this.atSetpointTrigger = new Trigger(()-> (Math.abs(deltaA - motorApos) + Math.abs(deltaB - motorBpos)) < tolerance);
-
-        this.pidController_A = this.gains.getPIDcontroller();
-        this.pidController_B = this.gains.getPIDcontroller();
-        this.ffController = this.gains.applyGains(new GenericFF.ArmFF());
+        this.pidController_A = gains.getPIDcontroller();
+        this.pidController_B = gains.getPIDcontroller();
 
         this.differentialMul = differentialMul;
     }
@@ -59,10 +52,10 @@ public class Differential extends Mechanism {
      * @param differentialMotor
      */
     public Differential(DifferentialMotor differentialMotor) {
-        this(differentialMotor, new Gains(), 1, 20);
+        this(differentialMotor, new Gains(),1, 20);
     }
 
-    public Command moveToState(double angle, double position, double ff, SubsystemBase... requirements){
+    public Command moveToStateCommand(double angle, double position, double ff, SubsystemBase... requirements){
         return Commands.startRun(
                 ()-> {
                     double deltaTheta = angle - getMechanismAngle();
@@ -83,7 +76,7 @@ public class Differential extends Mechanism {
                 requirements);
     }
 
-    public Command setDifferentialVoltage(DoubleSupplier voltageA, DoubleSupplier voltageB, SubsystemBase... requirements){
+    public Command setDifferentialVoltageCommand(DoubleSupplier voltageA, DoubleSupplier voltageB, SubsystemBase... requirements){
         return new RunCommand(
                 ()-> setDifferentialVoltage(voltageA.getAsDouble(), voltageB.getAsDouble()),
                 requirements);
