@@ -2,25 +2,28 @@ package frc.excalib.commands;
 
 import edu.wpi.first.util.ErrorMessages;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 
 import java.util.function.BooleanSupplier;
 
-/**
- *
- */
 public class ContinuouslyConditionalCommand extends Command {
+    // TODO: check & debug
     private final Command m_onTrue;
     private final Command m_onFalse;
     private final BooleanSupplier m_condition;
-    private boolean negated;
+    private final Command m_continuouslyConditionalCommand;
 
     public ContinuouslyConditionalCommand(Command onTrue, Command onFalse, BooleanSupplier condition) {
         this.m_onTrue = ErrorMessages.requireNonNullParam(onTrue, "onTrue", "ConditionalCommand");
         this.m_onFalse = ErrorMessages.requireNonNullParam(onFalse, "onFalse", "ConditionalCommand");
         this.m_condition = ErrorMessages.requireNonNullParam(condition, "condition", "ConditionalCommand");
-        CommandScheduler.getInstance().registerComposedCommands(onTrue, onFalse);
-        negated = condition.getAsBoolean();
+
+        m_continuouslyConditionalCommand = new ConditionalCommand(
+                m_onTrue,
+                m_onFalse,
+                m_condition
+        ).repeatedly().until(() -> m_onTrue.isFinished() || m_onFalse.isFinished());
     }
 
     private Command getCurrentCommand(){
@@ -34,14 +37,6 @@ public class ContinuouslyConditionalCommand extends Command {
     }
 
     public void initialize() {
-        getCurrentCommand().schedule();
-    }
-
-    public void execute() {
-        if (negated != m_condition.getAsBoolean()) {
-            getOtherCommand().cancel();
-            getCurrentCommand().schedule();
-            negated = !negated;
-        }
+        m_continuouslyConditionalCommand.schedule();
     }
 }
