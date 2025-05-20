@@ -32,8 +32,8 @@ public class Cannon extends SubsystemBase {
 
     public Cannon() {
         // initialize hardware
-        this.rotationMotorA = new SparkFlexMotor(0, kBrushless);
-        this.rotationMotorB = new SparkFlexMotor(1, kBrushless);
+        this.rotationMotorA = new SparkFlexMotor(1, kBrushless);
+        this.rotationMotorB = new SparkFlexMotor(2, kBrushless);
 
         this.pitchMotor = new TalonFXMotor(3);
         this.primer = new Piston(1, 2, PneumaticsModuleType.REVPH);
@@ -81,8 +81,7 @@ public class Cannon extends SubsystemBase {
     public Command shootToPositionCommand(DoubleSupplier rotation, DoubleSupplier pitch) {
         return new ParallelCommandGroup(
                 moveToPositionCommand(rotation, pitch),
-                new WaitUntilCommand(turret.atSetpointTrigger.and(arm.atSetpointTrigger))
-                        .andThen(shootCommand())
+                new WaitUntilCommand(turret.atSetpointTrigger.and(arm.atSetpointTrigger)).andThen(shootCommand())
         );
     }
 

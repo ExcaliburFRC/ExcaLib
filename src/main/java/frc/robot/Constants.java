@@ -25,7 +25,7 @@ public class Constants {
         public static final TrapezoidProfile.Constraints ARM_CONSTRAINTS = new TrapezoidProfile.Constraints(6.28, 3.14);
 
         public static final double ARM_POSITION_CONVERSION_FACTOR = 1.0 / 452.0 * 360;
-        public static final double ENCODER_OFFSET = 0.1234;
+        public static final double ENCODER_OFFSET = 18.75; // deg
 
         public static final double ARM_TOLERANCE = 3; // deg
     }
