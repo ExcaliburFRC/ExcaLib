@@ -40,13 +40,13 @@ public class AdjustableShooter extends SubsystemBase{
         shooterMotors.setVelocityConversionFactor(TURRET_VELOCITY_CONVERSION_FACTOR);
 
         // create turret and arm mechanisms
-        this.hood = new PositionMechanism.Builder(hoodMotor, TURRET_GAINS)
-                .withTolerance(TURRET_TOLERANCE)
-                .withLimit(TURRET_SOFT_LIMIT)
-                .withFeedforwardCalculator((position, velocity)-> TURRET_GAINS.ks * Math.signum(velocity))
-                .build();
-        this.shooter = new VelocityMechanism(shooterMotors, ARM_GAINS, ARM_TOLERANCE,
-                (position, velocity)-> ARM_GAINS.applyGains(new GenericFF.SimpleFF()).calculate(velocity));
+        this.hood = new PositionMechanism(hoodMotor, TURRET_GAINS)
+                .withTolerance(TURRET_TOLERANCE).withLimit(TURRET_SOFT_LIMIT)
+                .withFeedforwardCalculator((position, velocity)-> TURRET_GAINS.ks * Math.signum(velocity));
+
+        this.shooter = new VelocityMechanism(shooterMotors, ARM_GAINS)
+                .withTolerance(ARM_TOLERANCE)
+                .withFeedforwardCalculator((position, velocity)-> ARM_GAINS.applyGains(new GenericFF.SimpleFF()).calculate(velocity));
 
         setDefaultCommand(setShooterStateCommand(() -> 0, ()-> 0));
     }

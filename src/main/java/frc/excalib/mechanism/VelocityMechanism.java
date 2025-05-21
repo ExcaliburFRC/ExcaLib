@@ -6,33 +6,46 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.excalib.control.encoder.Encoder;
 import frc.excalib.control.gains.Gains;
+import frc.excalib.control.limits.SoftLimit;
 import frc.excalib.control.motor.Motor;
 
 import java.util.function.BiFunction;
 import java.util.function.DoubleSupplier;
 
 public class VelocityMechanism extends Mechanism {
-    private double m_setpoint, m_tolerance;
+    private double m_setpoint;
     private final PIDController m_pidController;
-    private final BiFunction<Double, Double, Double> m_feedforwardCalculator;
+    private BiFunction<Double, Double, Double> m_feedforwardCalculator;
 
-    public final Trigger m_atSetpointTrigger;
+    public Trigger m_atSetpointTrigger;
 
     /**
      * @param motor                 the Mechanism motor
-     * @param gains                 the FF and PID gains
-     * @param tolerance             setpoint tolerance
-     * @param feedforwardCalculator FF calculation
+     * @param gains                 PID gains
      */
-    public VelocityMechanism(Motor motor, Gains gains, double tolerance,
-                             BiFunction<Double, Double, Double> feedforwardCalculator) {
+    public VelocityMechanism(Motor motor, Gains gains) {
         super(motor);
         this.m_pidController = gains.getPIDcontroller();
-        m_feedforwardCalculator = feedforwardCalculator;
-        m_tolerance = tolerance;
 
-        m_atSetpointTrigger = new Trigger(() -> MathUtil.isNear(this.m_setpoint, super.logMechanismVelocity(), m_tolerance));
+        m_atSetpointTrigger = new Trigger(()-> false);
+        m_feedforwardCalculator = ((a, b)-> 0.0);
+    }
+
+    public VelocityMechanism withTolerance(double tolerance) {
+        m_atSetpointTrigger = new Trigger(() -> MathUtil.isNear(this.m_setpoint, super.logMechanismVelocity(), tolerance));
+        return this;
+    }
+
+    public VelocityMechanism withFeedforwardCalculator(BiFunction<Double, Double, Double> calculator) {
+        m_feedforwardCalculator = calculator;
+        return this;
+    }
+
+    public VelocityMechanism withExternalEncoder(Encoder encoder) {
+        super.addExternalEncoder(encoder);
+        return this;
     }
 
     /**

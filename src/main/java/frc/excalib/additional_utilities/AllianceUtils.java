@@ -17,6 +17,7 @@ import static edu.wpi.first.wpilibj.DriverStation.Alliance.Blue;
 /**
  * the purpose of this class is too supply different utility functions for functionality
  * that depends on the robot alliance.
+ *
  * @author Shai Grossman
  */
 public class AllianceUtils {
@@ -43,6 +44,7 @@ public class AllianceUtils {
 
     /**
      * Converts a pose to the pose relative to the current driver station alliance.
+     *
      * @param bluePose the current blue alliance pose
      * @return the converted Pose2d pose
      */
@@ -69,7 +71,7 @@ public class AllianceUtils {
     public static class AlliancePose {
         private Pose2d pose;
 
-        public AlliancePose(double x, double y, double degrees){
+        public AlliancePose(double x, double y, double degrees) {
             this.pose = new Pose2d(x, y, Rotation2d.fromDegrees(degrees));
         }
 
@@ -77,7 +79,7 @@ public class AllianceUtils {
             this.pose = new Pose2d(translation, rotation);
         }
 
-        public AlliancePose(double degrees){
+        public AlliancePose(double degrees) {
             this.pose = new Pose2d(0, 0, Rotation2d.fromDegrees(degrees));
         }
 

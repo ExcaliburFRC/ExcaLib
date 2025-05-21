@@ -18,65 +18,39 @@ import java.util.function.BiFunction;
 import java.util.function.DoubleSupplier;
 
 public class PositionMechanism extends Mechanism {
-    private double m_setpoint, m_tolerance;
+    private double m_setpoint;
     private PIDController m_pidController;
     private BiFunction<Double, Double, Double> m_feedforwardCalculator;
     private SoftLimit m_limit;
 
     public Trigger m_atSetpointTrigger;
 
-    private PositionMechanism(Builder builder) {
-        super(builder.motor);
-        super.addExternalEncoder(builder.externalEncoder);
+    public PositionMechanism(Motor motor, Gains gains) {
+        super(motor);
+        m_pidController = gains.getPIDcontroller();
 
-        this.m_pidController = builder.gains.getPIDcontroller();
-        this.m_feedforwardCalculator = builder.feedforwardCalculator;
-        this.m_tolerance = builder.tolerance;
-        this.m_limit = builder.limit;
-        this.m_setpoint = 0;
-
-        this.m_atSetpointTrigger = new Trigger(() -> MathUtil.isNear(this.m_setpoint, super.logMechanismPosition(), m_tolerance));
+        m_atSetpointTrigger = new Trigger(()-> false);
+        m_feedforwardCalculator = ((a, b)-> 0.0);
     }
 
-    public static final class Builder {
-        private Motor motor;
-        private Gains gains;
-        private double tolerance = 1;
-        private SoftLimit limit = null;
-        private Encoder externalEncoder = null;
-        private BiFunction<Double, Double, Double> feedforwardCalculator = (pos, vel) -> 0.0;
+    public PositionMechanism withTolerance(double tolerance) {
+        m_atSetpointTrigger = new Trigger(() -> MathUtil.isNear(this.m_setpoint, super.logMechanismPosition(), tolerance));
+        return this;
+    }
 
-        public Builder(Motor motor, Gains gains){
-            this.motor = motor;
-            this.gains = gains;
-        }
+    public PositionMechanism withFeedforwardCalculator(BiFunction<Double, Double, Double> calculator) {
+        m_feedforwardCalculator = calculator;
+        return this;
+    }
 
-        public Builder withTolerance(double tolerance) {
-            this.tolerance = tolerance;
-            return this;
-        }
+    public PositionMechanism withLimit(SoftLimit limit) {
+        m_limit = limit;
+        return this;
+    }
 
-        public Builder withFeedforwardCalculator(BiFunction<Double, Double, Double> feedforward) {
-            this.feedforwardCalculator = feedforward;
-            return this;
-        }
-
-        public Builder withLimit(SoftLimit limit) {
-            this.limit = limit;
-            return this;
-        }
-
-        public Builder withExternalEncoder(Encoder encoder) {
-            this.externalEncoder = encoder;
-            return this;
-        }
-
-        public PositionMechanism build() {
-            if (motor == null || gains == null) {
-                throw new IllegalStateException("Motor and Gains are required for PositionMechanism");
-            }
-            return new PositionMechanism(this);
-        }
+    public PositionMechanism withExternalEncoder(Encoder encoder) {
+        super.addExternalEncoder(encoder);
+        return this;
     }
 
     public Command setPositionCommand(DoubleSupplier positionSupplier, TrapezoidProfile profile, SubsystemBase... requirements) {
