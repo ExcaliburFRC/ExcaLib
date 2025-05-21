@@ -7,8 +7,8 @@ import frc.excalib.control.motor.controllers.SparkFlexMotor;
 import frc.excalib.control.motor.controllers.TalonFXMotor;
 import frc.excalib.control.motor.motorType.MotorGroup;
 import frc.excalib.control.motor.motor_specs.DirectionState;
-import frc.excalib.mechanism.ControlPositionMechanism;
-import frc.excalib.mechanism.ControlVelocityMechanism;
+import frc.excalib.mechanism.PositionMechanism;
+import frc.excalib.mechanism.VelocityMechanism;
 
 import java.util.function.DoubleSupplier;
 
@@ -21,8 +21,8 @@ public class AdjustableShooter extends SubsystemBase{
     private final TalonFXMotor hoodMotor;
 
     // Subsystem mechanisms
-    private final ControlPositionMechanism hood;
-    private final ControlVelocityMechanism shooter;
+    private final PositionMechanism hood;
+    private final VelocityMechanism shooter;
 
     public AdjustableShooter() {
         // initialize hardware
@@ -40,12 +40,13 @@ public class AdjustableShooter extends SubsystemBase{
         shooterMotors.setVelocityConversionFactor(TURRET_VELOCITY_CONVERSION_FACTOR);
 
         // create turret and arm mechanisms
-        this.hood = new ControlPositionMechanism(hoodMotor, TURRET_GAINS, TURRET_TOLERANCE,
-                (position, velocity)-> TURRET_GAINS.ks * Math.signum(velocity));
-        this.shooter = new ControlVelocityMechanism(shooterMotors, ARM_GAINS, ARM_TOLERANCE,
+        this.hood = new PositionMechanism.Builder(hoodMotor, TURRET_GAINS)
+                .withTolerance(TURRET_TOLERANCE)
+                .withLimit(TURRET_SOFT_LIMIT)
+                .withFeedforwardCalculator((position, velocity)-> TURRET_GAINS.ks * Math.signum(velocity))
+                .build();
+        this.shooter = new VelocityMechanism(shooterMotors, ARM_GAINS, ARM_TOLERANCE,
                 (position, velocity)-> ARM_GAINS.applyGains(new GenericFF.SimpleFF()).calculate(velocity));
-
-        this.hood.addLimit(TURRET_SOFT_LIMIT);
 
         setDefaultCommand(setShooterStateCommand(() -> 0, ()-> 0));
     }
