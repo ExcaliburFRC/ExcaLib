@@ -110,6 +110,9 @@ public class AllianceUtils {
             this(new Translation2d(0, 0), new Rotation2d(rotationRadians));
         }
 
+        /**
+         * An empty constructor that creates a pose with 0 values.
+         */
         public AlliancePose() {
             this(0, 0, 0);
         }
