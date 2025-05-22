@@ -40,24 +40,26 @@ public class MathUtils {
      * Limits a value in continuous system
      *
      * @param value the value to limit
-     * @param currentPosition the current position of the system
+     * @param referencePoint the point around which to constrain the value within ±π (180 degrees)
      * @return if the value and the current position are equals - empty optional, else the limited values in range of maximum 180 degrees (in every direction) from the current position
      */
-    public static Optional<Pair<Double, Double>> continuousLimit(double value, double currentPosition) {
+    public static Optional<Pair<Double, Double>> continuousLimit(double value, double referencePoint) {
         double upperLimitedValue, lowerLimitedValue;
-        if (value == currentPosition) {
+        if (value == referencePoint) { // if the value equals to the current position, return an empty optional
             return Optional.empty();
         }
-        if (value > currentPosition) {
+        if (value > referencePoint) {
+            // if the value is greater than the current position, subtract from it a full rotation each time until it's less than a rotation from the current position
             upperLimitedValue = value;
-            while ((upperLimitedValue - 2 * Math.PI) > currentPosition) {
+            while ((upperLimitedValue - 2 * Math.PI) > referencePoint) {
                 upperLimitedValue -= 2 * Math.PI;
             }
             lowerLimitedValue = upperLimitedValue - 2 * Math.PI;
             return Optional.of(Pair.of(upperLimitedValue, lowerLimitedValue));
         }
+        // if the value is smaller than the current position, add to it a full rotation each time until it's less than a rotation from the current position
         lowerLimitedValue = value;
-        while ((lowerLimitedValue + 2 * Math.PI) < currentPosition) {
+        while ((lowerLimitedValue + 2 * Math.PI) < referencePoint) {
             lowerLimitedValue += 2 * Math.PI;
         }
         upperLimitedValue = lowerLimitedValue + 2 * Math.PI;
