@@ -5,15 +5,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 /**
  * A class representing a Vector in two dimensions;
  * the Vector is defined by x value and y value
- *
- * @author Itay
  */
 public class Vector2D {
     private double m_x, m_y;
 
     /**
      * A constructor that takes two doubles representing the x and y components:
-     *
      * @param x The x component of the Vector
      * @param y The y component of the Vector
      */
@@ -25,7 +22,6 @@ public class Vector2D {
     /**
      * A constructor that takes a double representing the distance,
      * and a Rotation2D representing the angle:
-     *
      * @param magnitude The distance from the origin
      * @param direction The angle of the Vector
      */
@@ -36,7 +32,6 @@ public class Vector2D {
 
     /**
      * A function to get the x component of the Vector
-     *
      * @return x component
      */
     public double getX() {
@@ -45,7 +40,6 @@ public class Vector2D {
 
     /**
      * A function to get the y component of the Vector
-     *
      * @return y component
      */
     public double getY() {
@@ -54,7 +48,6 @@ public class Vector2D {
 
     /**
      * A function to get the distance from the origin
-     *
      * @return distance
      */
     public double getDistance() {
@@ -63,7 +56,6 @@ public class Vector2D {
 
     /**
      * A function to get the direction of the Vector
-     *
      * @return direction
      */
     public Rotation2d getDirection() {
@@ -72,7 +64,6 @@ public class Vector2D {
 
     /**
      * A function that adds another Vector to this Vector
-     *
      * @param other The other vector to add
      * @return a new Vector2D that represents the sum of the Vectors
      */
@@ -82,7 +73,6 @@ public class Vector2D {
 
     /**
      * A function that multiplies the Vector by a scalar
-     *
      * @param scalar The scalar to multiply by
      * @return a new Vector2D that represents the scaled Vector
      */
@@ -92,7 +82,6 @@ public class Vector2D {
 
     /**
      * A function that rotates the Vector by a given angle
-     *
      * @param deltaDirection The angle to rotate by
      * @return a new Vector2D that represents the rotated Vector
      */
@@ -108,7 +97,6 @@ public class Vector2D {
 
     /**
      * Sets the x component of the Vector
-     *
      * @param x The new x component
      */
     public void setX(double x) {
@@ -117,7 +105,6 @@ public class Vector2D {
 
     /**
      * Sets the y component of the Vector
-     *
      * @param y The new y component
      */
     public void setY(double y) {
@@ -126,7 +113,6 @@ public class Vector2D {
 
     /**
      * Sets the magnitude of the Vector while keeping its direction
-     *
      * @param magnitude The new magnitude
      */
     public void setMagnitude(double magnitude) {
@@ -145,7 +131,6 @@ public class Vector2D {
 
     /**
      * Sets the direction of the Vector while keeping its magnitude
-     *
      * @param direction The new direction
      */
     public void setDirection(Rotation2d direction) {
@@ -156,7 +141,6 @@ public class Vector2D {
 
     /**
      * Limits the size of the vector to the limit vector size in the limit vector axis.
-     *
      * @param limit the wanted vector to limit to.
      * @return the limited vector
      */

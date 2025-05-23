@@ -13,7 +13,6 @@ public class MathUtils {
 
     /**
      * Ensures that the absolute value of the given number does not exceed the specified limit.
-     *
      * @param value     The value to be limited.
      * @param sizeLimit The maximum allowable absolute value.
      * @return The value limited to the specified maximum absolute value, preserving its sign.
@@ -24,7 +23,6 @@ public class MathUtils {
 
     /**
      * Limits the given value to the specified limit. If the value exceeds the limit, it is clamped to the limit.
-     *
      * @param value The value to be limited.
      * @param limit The maximum allowable value (positive or negative).
      * @return The value clamped to the specified limit.
@@ -38,10 +36,10 @@ public class MathUtils {
 
     /**
      * Limits a value in continuous system
-     *
      * @param value the value to limit
      * @param referencePoint the point around which to constrain the value within ±π (180 degrees)
-     * @return if the value and the current position are equals - empty optional, else the limited values in range of maximum 180 degrees (in every direction) from the current position
+     * @return if the value and the current position are equals - empty optional,
+     * else the limited values in range of maximum 180 degrees (in every direction) from the current position
      */
     public static Optional<Pair<Double, Double>> continuousLimit(double value, double referencePoint) {
         double upperLimitedValue, lowerLimitedValue;
@@ -68,7 +66,6 @@ public class MathUtils {
 
     /**
      * Calculates the optimal target position for a robot to reach a target while avoiding a circular obstacle.
-     *
      * @param robot          The current position of the robot as a Translation2d.
      * @param target         The target position as a Translation2d.
      * @param obstacleCenter The center of the obstacle as a Translation2d.

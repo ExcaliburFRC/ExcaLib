@@ -21,7 +21,6 @@ import java.util.function.Supplier;
 public final class Turret extends Mechanism {
     private final ContinuousSoftLimit m_rotationLimit;
     private final PIDController m_anglePIDcontroller;
-    private final SimpleMotorFeedforward m_angleFFcontroller;
     private final DoubleSupplier m_POSITION_SUPPLIER;
 
     /**
@@ -36,7 +35,7 @@ public final class Turret extends Mechanism {
         m_rotationLimit = rotationLimit;
 
         m_anglePIDcontroller = new PIDController(angleGains.kp, angleGains.ki, angleGains.kd);
-        m_angleFFcontroller = new SimpleMotorFeedforward(angleGains.ks, angleGains.kv, angleGains.ka);
+        SimpleMotorFeedforward m_angleFFcontroller = new SimpleMotorFeedforward(angleGains.ks, angleGains.kv, angleGains.ka);
 
         m_anglePIDcontroller.setTolerance(PIDtolerance);
         m_anglePIDcontroller.enableContinuousInput(-Math.PI, Math.PI);
