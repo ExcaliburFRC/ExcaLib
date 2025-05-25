@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.excalib.control.gains.Gains;
+import frc.excalib.control.math.Circle;
 import frc.excalib.swerve.swerve_utils.SwerveModuleType;
 
 import static frc.excalib.swerve.swerve_utils.SwerveModuleType.MK4i_l3;
@@ -66,10 +67,15 @@ public class Constants {
 
     public static final Pose2d INITIAL_SWERVE_POSITION = new Pose2d();
 
-    // Auto Drive Controllers
+    // Auto Drive Constants
     public static final Gains ANGLE_PID_GAINS = new Gains();
     public static final Gains TRANSLATION_PID_GAINS = new Gains();
 
     public static final PIDConstants ANGLE_PID_PP_CONSTANTS = new PIDConstants(0.0, 0.0, 0.0);
     public static final PIDConstants TRANSLATION_PID_PP_CONSTANTS = new PIDConstants(0.0, 0.0, 0.0);
+
+    // Obstacle Avoidance Constants
+    public static final Circle OBSTACLE = new Circle(0, 0, 1);
+    public static final double DISTANCE_TO_AVOID_OBSTACLE = 2; // m
+    public static final double POSSIBLE_DEVIATION = Math.PI / 18;
 }
