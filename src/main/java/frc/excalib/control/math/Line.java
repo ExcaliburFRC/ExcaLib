@@ -27,17 +27,41 @@ public class Line {
     }
 
     /**
+     * Constructs a Line given a point and a slope.
+     *
+     * @param point A point the line passes through.
+     * @param slope The slope of the line.
+     */
+    public Line(Translation2d point, double slope) {
+        this.a = slope;
+        this.b = -1;
+        this.c = point.getY() - slope * point.getX();
+    }
+
+    /**
      * Finds the intersection point of this line with another line.
      *
      * @param other The other line to find the intersection with.
      * @return A Translation2d object representing the intersection point.
-     *         If the lines are parallel, the result may be undefined.
+     * If the lines are parallel, the result may be undefined.
      */
     public Translation2d findIntersection(Line other) {
         return new Translation2d(
                 (other.b * c - b * other.c) / (b * other.a - other.b * a),
                 (other.a * c - a * other.c) / (a * other.b - other.a * b)
         );
+    }
+
+    /**
+     * Calculates and returns the slope of the line.
+     *
+     * @return The slope of the line. If the line is vertical (i.e., b == 0), returns {@code Double.POSITIVE_INFINITY}.
+     */
+    public double getSlope() {
+        if (b == 0) {
+            return Double.POSITIVE_INFINITY;
+        }
+        return -a / b;
     }
 
     /**
