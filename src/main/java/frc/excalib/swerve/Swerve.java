@@ -22,7 +22,6 @@ import frc.excalib.control.math.Vector2D;
 import frc.excalib.control.motor.controllers.SparkMaxMotor;
 import frc.excalib.control.motor.controllers.TalonFXMotor;
 import frc.excalib.slam.mapper.Odometry;
-import frc.excalib.slam.mapper.PhotonAprilTagsCamera;
 import monologue.Logged;
 import org.json.simple.parser.ParseException;
 import org.photonvision.EstimatedRobotPose;

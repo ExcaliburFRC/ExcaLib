@@ -8,15 +8,12 @@ import java.util.function.DoubleSupplier;
 /**
  * A class representing the allowed one dimensional range for the state of a system.
  * the range is defined by two dynamic limits
- *
- * @author Yoav Cohen
  */
 public class SoftLimit implements Logged {
     private final DoubleSupplier m_minLimit, m_maxLimit;
 
     /**
      * A constructor that takes two DoubleSuppliers representing the dynamic limits:
-     *
      * @param minLimit the minimal limit of the represented range
      * @param maxLimit the maximal limit of the represented range
      */
@@ -27,9 +24,8 @@ public class SoftLimit implements Logged {
 
     /**
      * Check if the value is within the limits
-     *
      * @param val the value to check
-     * @return if it is in the limit or not
+     * @return if the value is in the limit or not
      */
     @Log.NT
     public boolean within(double val) {
@@ -38,7 +34,6 @@ public class SoftLimit implements Logged {
 
     /**
      * A method to limit a value to the represented range
-     *
      * @param val the value to limit
      * @return the limited value
      */

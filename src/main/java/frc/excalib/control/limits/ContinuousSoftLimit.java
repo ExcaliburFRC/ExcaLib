@@ -1,10 +1,19 @@
 package frc.excalib.control.limits;
 
+import edu.wpi.first.math.Pair;
+
+import java.util.Optional;
 import java.util.function.DoubleSupplier;
 
+import static frc.excalib.control.math.MathUtils.continuousLimit;
+
+/**
+ * A class representing the allowed one dimensional range for the state of a system with continuous input (ex: turret).
+ * the range is defined by two dynamic limits
+ */
 public class ContinuousSoftLimit extends SoftLimit {
     /**
-     * A constructor that takes two DoubleSuppliers representing the dynamic limits:
+     * A constructor that takes two Double Suppliers representing the dynamic limits:
      *
      * @param minLimit the minimal limit of the represented range
      * @param maxLimit the maximal limit of the represented range
@@ -13,30 +22,61 @@ public class ContinuousSoftLimit extends SoftLimit {
         super(minLimit, maxLimit);
     }
 
-    public double getSetPoint(double measurement, double wantedSetPoint) {
-        double upperSetPoint, lowerSetPoint;
-        if (wantedSetPoint > measurement) {
-            upperSetPoint = wantedSetPoint;
-            while ((upperSetPoint - 2 * Math.PI) > measurement) {
-                upperSetPoint -= 2 * Math.PI;
-            }
-            lowerSetPoint = upperSetPoint - 2 * Math.PI;
-        } else if (wantedSetPoint < measurement) {
-            lowerSetPoint = wantedSetPoint;
-            while ((lowerSetPoint + 2 * Math.PI) < measurement) {
-                lowerSetPoint += 2 * Math.PI;
-            }
-            upperSetPoint = lowerSetPoint + 2 * Math.PI;
+    /**
+     * A method to get the optimized setpoint.
+     *
+     * @param measurement    the current state of the system
+     * @param wantedSetpoint the wanted state of the system
+     * @return the optimized setpoint
+     */
+    public double getOptimizedSetpoint(double measurement, double wantedSetpoint) {
+        return useOptimzableSetpoint(measurement, wantedSetpoint, true);
+    }
+
+    /**
+     * A method to get the unoptimized setpoint.
+     *
+     * @param measurement    the current state of the system
+     * @param wantedSetpoint the wanted state of the system
+     * @return the unoptimized setpoint
+     */
+    public double getUnoptimizedSetpoint(double measurement, double wantedSetpoint) {
+        return useOptimzableSetpoint(measurement, wantedSetpoint, false);
+    }
+
+
+    /**
+     * A method to get the unoptimized setpoint.
+     *
+     * @param measurement    the current state of the system
+     * @param wantedSetpoint the wanted state of the system
+     * @param optimized      should the setpoint be optimized
+     * @return the unoptimized setpoint
+     */
+    private double useOptimzableSetpoint(double measurement, double wantedSetpoint, boolean optimized) {
+        Optional<Pair<Double, Double>> setpoints = continuousLimit(wantedSetpoint, measurement);
+        if (setpoints.isEmpty()) {  // the measurement and the setpoint are equals
+            return wantedSetpoint;
+        }
+
+        double upperSetpoint, lowerSetpoint;
+        upperSetpoint = setpoints.get().getFirst();
+        lowerSetpoint = setpoints.get().getSecond();
+
+        // if one of the setpoints exceeds the limit, return the other
+        if (upperSetpoint > super.getMaxLimit()) {
+            return lowerSetpoint;
+        } else if (lowerSetpoint < super.getMinLimit()) {
+            return upperSetpoint;
+        }
+
+        boolean target = Math.abs(measurement - upperSetpoint) < Math.abs(measurement - lowerSetpoint);
+        if (optimized) {
+            return target ?
+                    upperSetpoint : lowerSetpoint;
         } else {
-            return wantedSetPoint;
+            return target ?
+                    lowerSetpoint : upperSetpoint;
         }
-        if (upperSetPoint > super.getMaxLimit()) {
-            return lowerSetPoint;
-        } else if (lowerSetPoint < super.getMinLimit()) {
-            return upperSetPoint;
-        }
-        return
-                Math.abs(measurement - upperSetPoint) < Math.abs(measurement - lowerSetPoint) ?
-                        upperSetPoint : lowerSetPoint;
     }
 }

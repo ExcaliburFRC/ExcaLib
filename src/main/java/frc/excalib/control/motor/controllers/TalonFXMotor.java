@@ -14,8 +14,7 @@ import static com.ctre.phoenix6.signals.InvertedValue.CounterClockwise_Positive;
 import static frc.excalib.control.motor.motor_specs.DirectionState.FORWARD;
 
 /**
- * This class represents a implemantation of a motor controller
- * using the TalonFX hardware.
+ * This class represents an implementation of a Talon FX motor controller.
  */
 public class TalonFXMotor extends TalonFX implements Motor {
     private double m_positionConversionFactor;

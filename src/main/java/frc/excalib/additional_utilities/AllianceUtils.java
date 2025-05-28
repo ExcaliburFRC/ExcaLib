@@ -15,9 +15,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import static edu.wpi.first.wpilibj.DriverStation.Alliance.Blue;
 
 /**
- * the purpose of this class is too supply different utility functions for functionality
- * that depends on the robot alliance.
- * @author Shai Grossman
+ * the purpose of this class is to supply different utility functions for functionality that depends on the robot alliance.
  */
 public class AllianceUtils {
     public static final double FIELD_LENGTH_METERS = 17.548;
@@ -42,47 +40,95 @@ public class AllianceUtils {
     }
 
     /**
-     * Converts a pose to the pose relative to the current driver station alliance.
-     * @param bluePose the current blue alliance pose
+     * Converts a pose to a new pose relative to the current driver station alliance by rotating it if needed.
+     *
+     * @param pose the current blue alliance pose
      * @return the converted Pose2d pose
      */
-    public static Pose2d toAlliancePose(Pose2d bluePose) {
-        if (isBlueAlliance()) return bluePose;
-        return switchAlliance(bluePose);
+    public static Pose2d rotateToAlliancePose(Pose2d pose) {
+        return isBlueAlliance() ?
+                pose :
+                new Pose2d(
+                        FIELD_LENGTH_METERS - pose.getX(),
+                        FIELD_WIDTH_METERS - pose.getY(),
+                        pose.getRotation().minus(Rotation2d.kPi)
+                );
     }
 
-    public static Pose2d switchAlliance(Pose2d pose) {
-        return new Pose2d(
-                FIELD_LENGTH_METERS - pose.getX(), FIELD_WIDTH_METERS - pose.getY(),
-                pose.getRotation().minus(Rotation2d.fromDegrees(180))
-        );
+    /**
+     * Converts a pose to a new pose relative to the current driver station alliance by mirroring it if needed.
+     *
+     * @param pose the current blue alliance pose
+     * @return the converted Pose2d pose
+     */
+    public static Pose2d mirrorToAlliancePose(Pose2d pose) {
+        return isBlueAlliance() ?
+                pose :
+                new Pose2d(
+                        FIELD_LENGTH_METERS - pose.getX(),
+                        pose.getY(),
+                        Rotation2d.kPi.minus(pose.getRotation())
+                );
     }
 
-    public static Pose2d mirrorAlliance(Pose2d pose) {
-        return new Pose2d(
-                FIELD_LENGTH_METERS - pose.getX(),
-                pose.getY(),
-                new Rotation2d(Math.PI).minus(pose.getRotation())
-        );
-    }
-
+    /**
+     * A class represents a pose in the current alliance.
+     */
     public static class AlliancePose {
-        private Pose2d pose;
+        private final Pose2d m_pose;
 
-        public AlliancePose(double x, double y, double degrees){
-            this.pose = new Pose2d(x, y, Rotation2d.fromDegrees(degrees));
-        }
-
+        /**
+         * @param translation the translation component
+         * @param rotation    the rotation component
+         */
         public AlliancePose(Translation2d translation, Rotation2d rotation) {
-            this.pose = new Pose2d(translation, rotation);
+            this.m_pose = new Pose2d(translation, rotation);
         }
 
-        public AlliancePose(double degrees){
-            this.pose = new Pose2d(0, 0, Rotation2d.fromDegrees(degrees));
+        /**
+         * @param x               the x component
+         * @param y               the y component
+         * @param rotationRadians the rotation component in radians
+         */
+        public AlliancePose(double x, double y, double rotationRadians) {
+            this(new Translation2d(x, y), new Rotation2d(rotationRadians));
         }
 
-        public Pose2d get() {
-            return toAlliancePose(pose);
+        /**
+         * @param pose the pose
+         */
+        public AlliancePose(Pose2d pose) {
+            this(pose.getTranslation(), pose.getRotation());
+        }
+
+        /**
+         * A constructor that creates a pose with zero x and y components
+         *
+         * @param rotationRadians the rotation component in radians
+         */
+        public AlliancePose(double rotationRadians) {
+            this(new Translation2d(0, 0), new Rotation2d(rotationRadians));
+        }
+
+        /**
+         * An empty constructor that creates a pose with 0 values.
+         */
+        public AlliancePose() {
+            this(0, 0, 0);
+        }
+
+        /**
+         * @return the original pose if the robot is blue, the rotated pose if the robot is red
+         */
+        public Pose2d getRotated() {
+            return rotateToAlliancePose(m_pose);
+        }
+
+        /**
+         * @return the original pose if the robot is blue, the mirrored pose if the robot is red
+         */
+        public Pose2d getMirrored() {
+            return mirrorToAlliancePose(m_pose);
         }
     }
 }
