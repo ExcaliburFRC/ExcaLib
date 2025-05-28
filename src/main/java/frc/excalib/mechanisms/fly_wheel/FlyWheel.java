@@ -39,6 +39,10 @@ public class FlyWheel extends Mechanism {
         this.m_FF_CONTROLLER = new SimpleMotorFeedforward(gains.ks, gains.kv, gains.ka);
     }
 
+    public FlyWheel(Motor motor, FlyWheel other) {
+        this(motor, other.maxAcceleration, other.maxJerk, other.m_gains);
+    }
+
     /**
      * @param velocitySupplier a dynamic velocity setpoint.
      * @return a command that controls the FlyWheels velocity with high precision

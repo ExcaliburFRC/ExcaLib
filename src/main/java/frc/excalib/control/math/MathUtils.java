@@ -34,6 +34,55 @@ public class MathUtils {
     }
 
     /**
+     * Converts a slope of a line (m) to a direction in radians.
+     *
+     * @param m The slope of the line.
+     * @return The direction in radians (0 to <i>pi</i>). Returns <i>pi</i>/2 if the slope is infinite (i.e., vertical line).
+     */
+    public static double getDirectionBySlope(double m) {
+        if (Double.isInfinite(m)) {
+            return 90.0;
+        }
+        double angle = Math.atan(m);
+        return (angle + Math.PI) % Math.PI;
+    }
+
+    /**
+     * Finds the nearest point to a given reference point from a list of points.
+     *
+     * @param mainPoint The reference point to compare distances from.
+     * @param points The list of points to search through.
+     * @return The point closest to the reference point.
+     */
+    public static Translation2d getNearestPoint(Translation2d mainPoint, Translation2d... points) {
+        Translation2d nearestPoint = new Translation2d();
+        for (Translation2d point : points) {
+            if (mainPoint.getDistance(nearestPoint) > mainPoint.getDistance(point)) {
+                nearestPoint = point;
+            }
+        }
+        return nearestPoint;
+    }
+
+    /**
+     * Finds the farthest point from a given reference point from a list of points.
+     *
+     * @param mainPoint The reference point to compare distances from.
+     * @param points The list of points to search through.
+     * @return The point farthest from the reference point.
+     */
+    public static Translation2d getFarthestPoint(Translation2d mainPoint, Translation2d... points) {
+        Translation2d farthestPoint = new Translation2d();
+        for (Translation2d point : points) {
+            if (mainPoint.getDistance(farthestPoint) < mainPoint.getDistance(point)) {
+                farthestPoint = point;
+            }
+        }
+        return farthestPoint;
+    }
+
+
+    /**
      * Calculates the optimal target position for a robot to reach a target while avoiding a reef.
      *
      * @param robot      The current position of the robot as a Translation2d.

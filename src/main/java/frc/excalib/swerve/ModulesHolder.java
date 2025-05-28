@@ -11,9 +11,6 @@ import monologue.Logged;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-import static frc.robot.SwerveConstants.MAX_VEL;
-import static monologue.Annotations.Log;
-
 public class ModulesHolder implements Logged {
     public final SwerveModule m_frontLeft;
     public final SwerveModule m_frontRight;
@@ -42,7 +39,6 @@ public class ModulesHolder implements Logged {
         this.m_backLeft = backLeft;
         this.m_backRight = backRight;
 
-        // Initialize SwerveDriveKinematics once since module locations are constant
         this.m_swerveDriveKinematics = new SwerveDriveKinematics(
                 frontLeft.m_MODULE_LOCATION,
                 frontRight.m_MODULE_LOCATION,
@@ -59,76 +55,34 @@ public class ModulesHolder implements Logged {
     }
 
     /**
-     * Stops all swerve modules.
-     */
-    public void stop() {
-        m_frontLeft.stopModule();
-        m_frontRight.stopModule();
-        m_backLeft.stopModule();
-        m_backRight.stopModule();
-    }
-
-    /**
-     * Gets the robot's average velocity based on the velocities of all modules.
+     * A method that calculates the minimum velocity ratio limit among all modules.
      *
-     * @return a Vector2D representing the robot's velocity.
-     */
-    public Vector2D getVelocity() {
-        // Sum the velocities of all modules
-        double totalX = m_frontLeft.getVelocity().getX()
-                + m_frontRight.getVelocity().getX()
-                + m_backLeft.getVelocity().getX()
-                + m_backRight.getVelocity().getX();
-
-        double totalY = m_frontLeft.getVelocity().getY()
-                + m_frontRight.getVelocity().getY()
-                + m_backLeft.getVelocity().getY()
-                + m_backRight.getVelocity().getY();
-
-        // Compute the average velocity
-        return new Vector2D(totalX * 0.25, totalY * 0.25);
-    }
-
-    @Log.NT(key = "angular vel")
-    public double getOmegaRadPerSec() {
-        return new SwerveDriveKinematics(
-                m_frontLeft.m_MODULE_LOCATION,
-                m_frontRight.m_MODULE_LOCATION,
-                m_backLeft.m_MODULE_LOCATION,
-                m_backRight.m_MODULE_LOCATION
-        ).toChassisSpeeds(logStates()).omegaRadiansPerSecond;
-    }
-
-    @Log.NT(key = "swerve velocity")
-    public double getVelocityDistance() {
-        return getVelocity().getDistance();
-    }
-
-    /**
-     * Calculates the minimum velocity ratio limit among all modules.
-     *
-     * @param translationVelocity The desired translation velocity.
-     * @param omegaRadPerSec      The desired rotation rate in radians per second.
+     * @param translationVelocity The desired translation velocity of the robot.
+     * @param omegaRadPerSec      The desired angular velocity of the robot in radians per second.
      * @return The velocity ratio limit.
      */
     private double calcVelocityRatioLimit(Vector2D translationVelocity, double omegaRadPerSec) {
-        double flLimit = m_frontLeft.getVelocityRatioLimit(translationVelocity, omegaRadPerSec);
-        double frLimit = m_frontRight.getVelocityRatioLimit(translationVelocity, omegaRadPerSec);
-        double blLimit = m_backLeft.getVelocityRatioLimit(translationVelocity, omegaRadPerSec);
-        double brLimit = m_backRight.getVelocityRatioLimit(translationVelocity, omegaRadPerSec);
-
-        double velocityRatioLimit = Math.min(Math.min(flLimit, frLimit), Math.min(blLimit, brLimit));
+        double velocityRatioLimit = Math.min(
+                Math.min(
+                        m_frontLeft.getVelocityRatioLimit(translationVelocity, omegaRadPerSec),
+                        m_frontRight.getVelocityRatioLimit(translationVelocity, omegaRadPerSec)
+                ),
+                Math.min(
+                        m_backLeft.getVelocityRatioLimit(translationVelocity, omegaRadPerSec),
+                        m_backRight.getVelocityRatioLimit(translationVelocity, omegaRadPerSec)
+                )
+        );
         return Math.min(1.0, velocityRatioLimit); // Ensure the limit does not exceed 1.0
     }
 
     /**
-     * Sets the velocities of all modules based on the desired translation and rotation velocities.
+     * A method that sets the velocities of all modules based on the desired translation and rotation velocities of the robot.
      *
-     * @param omega            The desired rotation rate supplier.
      * @param translationalVel The desired translation velocity supplier.
-     * @return A command to set the velocities.
+     * @param omega            The desired angular velocity supplier.
+     * @return A command that sets the velocities.
      */
-    public Command setVelocitiesCommand(Supplier<Vector2D> translationalVel, DoubleSupplier omega) {
+    Command setVelocitiesCommand(Supplier<Vector2D> translationalVel, DoubleSupplier omega) {
         return new ParallelCommandGroup(
                 m_frontLeft.setVelocityCommand(
                         translationalVel,
@@ -153,7 +107,20 @@ public class ModulesHolder implements Logged {
         );
     }
 
-    public Command coastCommand() {
+    /**
+     * A method that stops all swerve modules.
+     */
+    void stop() {
+        m_frontLeft.stopModule();
+        m_frontRight.stopModule();
+        m_backLeft.stopModule();
+        m_backRight.stopModule();
+    }
+
+    /**
+     * @return A Command that sets the idle state of all modules to coast.
+     */
+    Command coastCommand() {
         return new ParallelCommandGroup(
                 m_frontLeft.coastCommand(),
                 m_frontRight.coastCommand(),
@@ -162,8 +129,12 @@ public class ModulesHolder implements Logged {
         );
     }
 
-    public void setModulesStates(SwerveModuleState[] states) {
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_VEL);
+    /**
+     * A method that sets the states of the modules to the desired states.
+     *
+     * @param states an array represents the wanted states of the modules.
+     */
+    void setModulesStates(SwerveModuleState[] states) {
         m_frontLeft.setDesiredState(states[0]);
         m_frontRight.setDesiredState(states[1]);
         m_backLeft.setDesiredState(states[2]);
@@ -171,27 +142,72 @@ public class ModulesHolder implements Logged {
     }
 
     /**
-     * Logs the states of all modules.
+     * A method to get the robot's average sigma velocity based on the velocities of all modules.
+     *
+     * @return a Vector2D represents the robot's velocity.
+     */
+    Vector2D getSigmaVelocity() {
+        // Sum the velocities of all modules
+        double totalX = m_frontLeft.getVelocity().getX()
+                + m_frontRight.getVelocity().getX()
+                + m_backLeft.getVelocity().getX()
+                + m_backRight.getVelocity().getX();
+
+        double totalY = m_frontLeft.getVelocity().getY()
+                + m_frontRight.getVelocity().getY()
+                + m_backLeft.getVelocity().getY()
+                + m_backRight.getVelocity().getY();
+
+        // Compute the average velocity
+        return new Vector2D(totalX * 0.25, totalY * 0.25);
+    }
+
+    /**
+     * A method to get the linear velocity of the robot.
+     *
+     * @return the linear velocity of the robot.
+     */
+    double getLinearVelocity() {
+        return new Vector2D(
+                m_swerveDriveKinematics.toChassisSpeeds(getStates()).vxMetersPerSecond,
+                m_swerveDriveKinematics.toChassisSpeeds(getStates()).vyMetersPerSecond
+        ).getDistance();
+    }
+
+    /**
+     * A method to get the angular velocity of the robot.
+     *
+     * @return the angular velocity of the robot.
+     */
+    double getOmegaRadPerSec() {
+        return m_swerveDriveKinematics.toChassisSpeeds(getStates()).omegaRadiansPerSecond;
+    }
+
+    /**
+     * A method to get the states of all modules.
      *
      * @return An array of SwerveModuleState representing the states of the modules.
      */
-    @Log.NT(key = "Swerve States")
-    public SwerveModuleState[] logStates() {
+    SwerveModuleState[] getStates() {
         return new SwerveModuleState[]{
-                m_frontLeft.logState(),
-                m_frontRight.logState(),
-                m_backLeft.logState(),
-                m_backRight.logState()
+                m_frontLeft.getState(),
+                m_frontRight.getState(),
+                m_backLeft.getState(),
+                m_backRight.getState()
         };
     }
 
-    @Log.NT(key = "SetPoints")
-    public SwerveModuleState[] logSetPointStates() {
+    /**
+     * A method to get the desired states of all modules.
+     *
+     * @return An array of SwerveModuleState representing the desired states of the modules.
+     */
+    SwerveModuleState[] getDesiredStates() {
         return new SwerveModuleState[]{
-                m_frontLeft.logSetpointState(),
-                m_frontRight.logSetpointState(),
-                m_backLeft.logSetpointState(),
-                m_backRight.logSetpointState()
+                m_frontLeft.getDesiredState(),
+                m_frontRight.getDesiredState(),
+                m_backLeft.getDesiredState(),
+                m_backRight.getDesiredState()
         };
     }
 
@@ -200,7 +216,7 @@ public class ModulesHolder implements Logged {
      *
      * @return The SwerveDriveKinematics instance.
      */
-    public SwerveDriveKinematics getSwerveDriveKinematics() {
+    SwerveDriveKinematics getSwerveDriveKinematics() {
         return m_swerveDriveKinematics;
     }
 
@@ -209,10 +225,13 @@ public class ModulesHolder implements Logged {
      *
      * @return An array of SwerveModulePosition representing the positions of the modules.
      */
-    public SwerveModulePosition[] getModulesPositions() {
+    SwerveModulePosition[] getModulesPositions() {
         return m_modulePositions;
     }
 
+    /**
+     * A method that updates the modules positions of all modules. should be called periodically.
+     */
     public void periodic() {
         m_frontLeft.periodic();
         m_frontRight.periodic();
