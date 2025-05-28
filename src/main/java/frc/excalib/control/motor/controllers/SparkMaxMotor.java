@@ -14,8 +14,7 @@ import static frc.excalib.control.motor.motor_specs.IdleState.BRAKE;
 import static frc.excalib.control.motor.motor_specs.IdleState.COAST;
 
 /**
- *  This class represents a implemantation of a motor
- *  controller using the Rev SparkMax hardware.
+ * This class represents an implementation of a Spark Max motor controller.
  */
 public class SparkMaxMotor extends SparkMax implements Motor {
     private final SparkFlexConfig m_config = new SparkFlexConfig();
