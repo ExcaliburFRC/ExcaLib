@@ -81,10 +81,10 @@ public class SwerveConfigurationUtils {
         setupDriveMotors(driveMotors, stallLimit, freeLimit, directionState, idleState, moduleType);
 
         FlyWheel[] drivingMechanisms = new FlyWheel[4];
-        FlyWheel frontLeftWheel = new FlyWheel(driveMotors[0], maxModuleAcceleration, maxModuleJerk, driveModuleGains);
+        drivingMechanisms[0] = new FlyWheel(driveMotors[0], maxModuleAcceleration, maxModuleJerk, driveModuleGains);
 
         for (int i = 1; i < drivingMechanisms.length; i++) {
-            drivingMechanisms[i] = new FlyWheel(driveMotors[i], frontLeftWheel);
+            drivingMechanisms[i] = new FlyWheel(driveMotors[i], drivingMechanisms[0]);
         }
 
         return drivingMechanisms;
@@ -112,10 +112,10 @@ public class SwerveConfigurationUtils {
         setupSteeringMotors(steeringMotors, stallLimit, freeLimit, directionState, idleState, moduleType);
 
         Turret[] steeringMechanisms = new Turret[4];
-        Turret frontLeftSteeringMechanism = new Turret(steeringMotors[0], steeringModuleGains, steeringPIDtolerance, steeringModulesPositionSuppliers[0]);
+        steeringMechanisms[0] = new Turret(steeringMotors[0], steeringModuleGains, steeringPIDtolerance, steeringModulesPositionSuppliers[0]);
 
         for (int i = 1; i < steeringMechanisms.length; i++) {
-            steeringMechanisms[i] = new Turret(steeringMotors[i], steeringModulesPositionSuppliers[i], frontLeftSteeringMechanism);
+            steeringMechanisms[i] = new Turret(steeringMotors[i], steeringModulesPositionSuppliers[i], steeringMechanisms[0]);
         }
 
         return steeringMechanisms;
