@@ -2,11 +2,11 @@ package frc.excalib.control.feedback;
 
 import frc.excalib.additional_utilities.periodics.PeriodicScheduler;
 import frc.excalib.additional_utilities.periodics.PeriodicTask;
+import frc.excalib.control.gains.Gains;
 
 import java.util.function.DoubleSupplier;
 
 public class PID extends PeriodicTask {
-    private final DoubleSupplier measurementSupplier;
     private final double kp, ki, kd;
     private final double periodSeconds;
 
@@ -16,13 +16,12 @@ public class PID extends PeriodicTask {
     private double lastError = 0.0;
     private boolean firstRun = true;
 
-    public PID(DoubleSupplier measurementSupplier, double setpoint, double kp, double ki, double kd, PeriodicScheduler.PERIOD period) {
+    public PID(DoubleSupplier measurementSupplier, double setpoint, Gains gains, PeriodicScheduler.PERIOD period) {
         super(() -> {}, period);
-        this.measurementSupplier = measurementSupplier;
         this.setpoint = setpoint;
-        this.kp = kp;
-        this.ki = ki;
-        this.kd = kd;
+        this.kp = gains.kp;
+        this.ki = gains.ki;
+        this.kd = gains.kd;
         this.periodSeconds = period.milliseconds / 1000.0;
 
         super.setTask(() -> {
