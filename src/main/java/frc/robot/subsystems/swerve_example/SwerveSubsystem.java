@@ -102,10 +102,10 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
         // An array of DoubleSupplier represents the positions of the modules.
         // THEY MUST BE ARRANGED IN THE FOLLOWING ORDER: front left, front right, back left, back right
         DoubleSupplier[] modulesPositionsSuppliers = {
-                () -> m_cancoders[0].getPosition().getValueAsDouble(),
-                () -> m_cancoders[1].getPosition().getValueAsDouble(),
-                () -> m_cancoders[2].getPosition().getValueAsDouble(),
-                () -> m_cancoders[3].getPosition().getValueAsDouble()
+                () -> m_cancoders[0].getPosition().getValueAsDouble() * ROTATIONS_TO_RADIANS,
+                () -> m_cancoders[1].getPosition().getValueAsDouble() * ROTATIONS_TO_RADIANS,
+                () -> m_cancoders[2].getPosition().getValueAsDouble() * ROTATIONS_TO_RADIANS,
+                () -> m_cancoders[3].getPosition().getValueAsDouble() * ROTATIONS_TO_RADIANS
         };
 
         // A function that initializes the swerve modules objects
@@ -154,7 +154,7 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
         m_atPoseTrigger = new Trigger(m_xController::atSetpoint).and(m_yController::atSetpoint).and(m_angleController::atSetpoint).debounce(0.1);
 
         // Initialization of the AutoBuilder for pathplanner
-        initAutoBuilder();
+        // initAutoBuilder();
     }
 
     /**
@@ -168,7 +168,7 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     public Command driveCommand(Supplier<Vector2D> velocityMPS,
                                 DoubleSupplier omegaRadPerSec,
                                 BooleanSupplier fieldOriented) {
-        return m_swerveMechanism.driveCommand(velocityMPS, omegaRadPerSec, fieldOriented, true, this).withName("Drive Command");
+       return m_swerveMechanism.driveCommand(velocityMPS, omegaRadPerSec, fieldOriented, true, this).withName("Drive Command");
     }
 
     /**

@@ -78,4 +78,6 @@ public class Constants {
     public static final Circle OBSTACLE = new Circle(0, 0, 1);
     public static final double DISTANCE_TO_AVOID_OBSTACLE = 2; // m
     public static final double POSSIBLE_DEVIATION = Math.PI / 18;
+
+    public static final double ROTATIONS_TO_RADIANS = 2 * Math.PI;
 }
