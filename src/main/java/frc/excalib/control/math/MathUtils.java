@@ -83,7 +83,7 @@ public class MathUtils {
 
 
     /**
-     * Calculates the optimal target position for a robot to reach a target while avoiding a reef.
+     * Calculates the optimal target position for a robot to reach a target while avoiding an obstacle.
      *
      * @param robot      The current position of the robot as a Translation2d.
      * @param target     The target position as a Translation2d.

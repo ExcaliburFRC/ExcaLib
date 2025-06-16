@@ -64,11 +64,11 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     // the current obstacle to avoid from
     private Circle m_obstacleToAvoid;
     // says if the robot's velocity is in collision range
-    private boolean m_inRange;
+    private boolean m_inRange = false;
     // the target point for obstacle avoidance
     private Translation2d m_targetPoint;
     // the last wanted velocity direction
-    private Rotation2d m_lastAngle;
+    private Rotation2d m_lastDirection;
 
     /**
      * A constructor that initialize the swerve subsystem
@@ -168,7 +168,7 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     public Command driveCommand(Supplier<Vector2D> velocityMPS,
                                 DoubleSupplier omegaRadPerSec,
                                 BooleanSupplier fieldOriented) {
-       return m_swerveMechanism.driveCommand(velocityMPS, omegaRadPerSec, fieldOriented, true, this).withName("Drive Command");
+        return m_swerveMechanism.driveCommand(velocityMPS, omegaRadPerSec, fieldOriented, true, this).withName("Drive Command");
     }
 
     /**
@@ -182,72 +182,44 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
                                               DoubleSupplier omegaRadPerSec,
                                               Circle... obstacles) {
         // TODO: check
-        for ( Circle obstacle : obstacles) {
-            Line[] tangents = obstacle.getTangents(m_swerveMechanism.getPose2D().getTranslation());
-            if (tangents.length == 0) {
-                m_inRange = false; // if the robot is inside the obstacle circle, don't dodge it
-            } else if (tangents.length == 1) {
-                m_inRange = false; // if the robot is on the obstacle circle, don't dodge it
-            } else {
-                // if the robot is outside the obstacle circle, check if the direction of the velocity is between the two intersections
-                double[] directions = new double[]{
-                        MathUtils.getDirectionBySlope(tangents[0].getSlope()),
-                        MathUtils.getDirectionBySlope(tangents[1].getSlope())
-                };
-                m_inRange = velocityMPS.get().getDirection().getRadians() > Math.min(directions[0], directions[1]) && velocityMPS.get().getDirection().getRadians() < Math.max(directions[0], directions[1]);
-            }
-            if (m_inRange) {
-                m_obstacleToAvoid = obstacle;
-                break;
-            }
+        if (obstacles.length < 1) {
+            return m_swerveMechanism.driveCommand(velocityMPS, omegaRadPerSec, () -> true, true, this);
         }
 
-        return new ContinuouslyConditionalCommand(
-                m_swerveMechanism.driveCommand(velocityMPS, omegaRadPerSec, () -> true, true, this), // there is no colliding risk
-                new SequentialCommandGroup(
-                        new InstantCommand(() -> {
-                            for ( Circle obstacle : obstacles) {
-                                Line[] tangents = obstacle.getTangents(m_swerveMechanism.getPose2D().getTranslation());
-                                if (tangents.length == 0) {
-                                    m_inRange = false; // if the robot is inside the obstacle circle, don't dodge it
-                                } else if (tangents.length == 1) {
-                                    m_inRange = false; // if the robot is on the obstacle circle, don't dodge it
-                                } else {
-                                    // if the robot is outside the obstacle circle, check if the direction of the velocity is between the two intersections
-                                    double[] directions = new double[]{
-                                            MathUtils.getDirectionBySlope(tangents[0].getSlope()),
-                                            MathUtils.getDirectionBySlope(tangents[1].getSlope())
-                                    };
-                                    m_inRange = velocityMPS.get().getDirection().getRadians() > Math.min(directions[0], directions[1]) && velocityMPS.get().getDirection().getRadians() < Math.max(directions[0], directions[1]);
-                                }
-                                if (m_inRange) {
-                                    m_obstacleToAvoid = obstacle;
-                                    break;
-                                }
-                            }
+        for (Circle obstacle : obstacles) {
+            getObstacleToAvoid(obstacle, velocityMPS.get());
+        }
 
-                            // Construct a line from the robot pose, following the direction of motion
-                            Line lineToTargetPose = new Line(
-                                    m_swerveMechanism.getPose2D().getTranslation(),
-                                    Math.tan(velocityMPS.get().getDirection().getRadians())
-                            );
-                            // Find the farthest intersection point of that line with the obstacle. This is the predicted wanted point beyond the obstacle
-                            m_targetPoint = MathUtils.getFarthestPoint(
-                                    m_swerveMechanism.getPose2D().getTranslation(),
-                                    m_obstacleToAvoid.getIntersections(lineToTargetPose)
-                            );
-                            // The last wanted velocity direction. enables to change the target point according to controller input.
-                            m_lastAngle = velocityMPS.get().getDirection();
-                        }),
+        return new ParallelCommandGroup(
+                new RunCommand(() -> {
+                    for (Circle obstacle : obstacles) {
+                        getObstacleToAvoid(obstacle, velocityMPS.get());
+                    }
+
+                    // Construct a line from the robot pose, following the direction of motion
+                    Line lineToTargetPose = new Line(
+                            m_swerveMechanism.getPose2D().getTranslation(),
+                            Math.tan(velocityMPS.get().getDirection().getRadians())
+                    );
+                    // Find the farthest intersection point of that line with the obstacle. This is the predicted wanted point beyond the obstacle
+                    m_targetPoint = MathUtils.getFarthestPoint(
+                            m_swerveMechanism.getPose2D().getTranslation(),
+                            m_obstacleToAvoid.getIntersections(lineToTargetPose)
+                    );
+                    // The last wanted velocity direction. enables to change the target point according to controller input.
+                    m_lastDirection = velocityMPS.get().getDirection();
+                }),
+                new ContinuouslyConditionalCommand(
+                        m_swerveMechanism.driveCommand(velocityMPS, omegaRadPerSec, () -> true, true, this), // there is no colliding risk
                         new ParallelCommandGroup(
                                 new RunCommand(() -> {
-                                    // Rotate the target point around the obstacle center according to the difference between the previous wanted angle and current wanted angle
-                                    m_targetPoint.rotateAround(
+                                    // Rotate the target point around the obstacle center according to the difference between the previous wanted direction and current wanted direction
+                                    m_targetPoint = m_targetPoint.rotateAround(
                                             m_obstacleToAvoid.getCenter().getTranslation(),
-                                            velocityMPS.get().getDirection().minus(m_lastAngle)
+                                            velocityMPS.get().getDirection().minus(m_lastDirection)
                                     );
-                                    // Save the current wanted angle
-                                    m_lastAngle = velocityMPS.get().getDirection();
+                                    // Save the current wanted direction
+                                    m_lastDirection = velocityMPS.get().getDirection();
                                 }),
                                 m_swerveMechanism.driveCommand(
                                         () -> new Vector2D(
@@ -261,13 +233,32 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
                                         ),
                                         omegaRadPerSec, () -> true, true, this
                                 )
-                        )
-                ).until(
-                        () -> m_swerveMechanism.getPose2D().getTranslation().getAngle().getRadians() > m_targetPoint.getAngle().getRadians() - POSSIBLE_DEVIATION &&
-                                m_swerveMechanism.getPose2D().getTranslation().getAngle().getRadians() < m_targetPoint.getAngle().getRadians() + POSSIBLE_DEVIATION
-                ), // Continue until the robot is in a range of ±5.5% in relation to the target point angle
-                () -> m_swerveMechanism.getPose2D().getTranslation().getDistance(m_obstacleToAvoid.getCenter().getTranslation()) > DISTANCE_TO_AVOID_OBSTACLE && !m_inRange
+                        ).until(
+                                () -> m_swerveMechanism.getPose2D().getTranslation().getAngle().getRadians() > m_targetPoint.getAngle().getRadians() - POSSIBLE_DEVIATION &&
+                                        m_swerveMechanism.getPose2D().getTranslation().getAngle().getRadians() < m_targetPoint.getAngle().getRadians() + POSSIBLE_DEVIATION
+                        ), // Continue until the robot is in a range of ±5.5% in relation to the target point angle
+                        () -> m_swerveMechanism.getPose2D().getTranslation().getDistance(m_obstacleToAvoid.getCenter().getTranslation()) > DISTANCE_TO_AVOID_OBSTACLE && !m_inRange
+                )
         );
+    }
+
+    private void getObstacleToAvoid(Circle obstacle, Vector2D velocityMPS) {
+        Line[] tangents = obstacle.getTangents(m_swerveMechanism.getPose2D().getTranslation());
+        if (tangents.length == 0) {
+            m_inRange = false; // if the robot is inside the obstacle circle, don't dodge it
+        } else if (tangents.length == 1) {
+            m_inRange = false; // if the robot is on the obstacle circle, don't dodge it
+        } else {
+            // if the robot is outside the obstacle circle, check if the direction of the velocity is between the two intersections
+            double[] directions = new double[]{
+                    MathUtils.getDirectionBySlope(tangents[0].getSlope()),
+                    MathUtils.getDirectionBySlope(tangents[1].getSlope())
+            };
+            m_inRange = velocityMPS.getDirection().getRadians() > Math.min(directions[0], directions[1]) && velocityMPS.getDirection().getRadians() < Math.max(directions[0], directions[1]);
+        }
+        if (m_inRange) {
+            m_obstacleToAvoid = obstacle;
+        }
     }
 
     /**
