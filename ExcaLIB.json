@@ -6,7 +6,7 @@
   "mavenUrls": [
     "https://jitpack.io"
   ],
-  "jsonUrl": "https://raw.githubusercontent.com/ExcaliburFRC/ExcaLIB/dependency/ExcaLIB.json",
+  "jsonUrl": "https://raw.githubusercontent.com/ExcaliburFRC/ExcaLIB/v0.1.0/ExcaLIB.json",
   "javaDependencies": [
     {
       "groupId": "com.github.ExcaliburFRC",
