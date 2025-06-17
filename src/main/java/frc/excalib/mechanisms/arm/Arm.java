@@ -14,15 +14,34 @@ import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 
 /**
- * This class represents an Arm Mechanism
+ * Represents a robotic arm mechanism with PID control and physical constraints.
+ * Provides commands for moving the arm to a specified angle or following a dynamic setpoint.
  */
 public class Arm extends Mechanism {
+    /** The mass properties of the arm. */
     private final Mass m_mass;
+    /** The PID controller used for angle control. */
     private final PIDController m_PIDController;
+    /** Supplies the current angle of the arm (in radians). */
     public final DoubleSupplier ANGLE_SUPPLIER;
-    public final double m_kv, m_ks, m_kg;
+    /** Velocity feedforward gain. */
+    public final double m_kv;
+    /** Static feedforward gain. */
+    public final double m_ks;
+    /** Gravity feedforward gain. */
+    public final double m_kg;
+    /** Soft limit for velocity constraints. */
     public final SoftLimit m_VELOCITY_LIMIT;
 
+    /**
+     * Constructs an Arm mechanism.
+     *
+     * @param motor         the motor controller for the arm
+     * @param angleSupplier supplies the current arm angle (radians)
+     * @param velocityLimit soft limit for velocity
+     * @param gains         PID and feedforward gains
+     * @param mass          mass properties of the arm
+     */
     public Arm(Motor motor, DoubleSupplier angleSupplier,
                SoftLimit velocityLimit, Gains gains, Mass mass) {
         super(motor);
@@ -36,9 +55,13 @@ public class Arm extends Mechanism {
     }
 
     /**
-     * @param setPointSupplier  the dynamic angle setpoint to go to (radians)
-     * @param toleranceConsumer gets updated if the measurement is at tolerance.
-     * @return a command that moves the arm to the specified dynamic setpoint.
+     * Creates a command to move the arm to a dynamic angle setpoint using PID and feedforward control.
+     *
+     * @param setPointSupplier  supplies the target angle setpoint (radians)
+     * @param toleranceConsumer consumer that receives whether the arm is within the specified tolerance
+     * @param maxOffSet         maximum allowed error for tolerance (radians)
+     * @param requirements      subsystems required by this command
+     * @return a command that moves the arm to the specified dynamic setpoint
      */
     public Command anglePositionControlCommand(
             DoubleSupplier setPointSupplier, Consumer<Boolean> toleranceConsumer,
@@ -63,9 +86,13 @@ public class Arm extends Mechanism {
     }
 
     /**
-     * @param angle             the angle setpoint to go to (radians)
-     * @param toleranceConsumer gets updated if the measurement is at tolerance.
-     * @return a command that moves the arm to the specified setpoint.
+     * Creates a command to move the arm to a fixed angle setpoint using PID and feedforward control.
+     *
+     * @param angle             the target angle setpoint (radians)
+     * @param toleranceConsumer consumer that receives whether the arm is within the specified tolerance
+     * @param maxOffSet         maximum allowed error for tolerance (radians)
+     * @param requirements      subsystems required by this command
+     * @return a command that moves the arm to the specified setpoint
      */
     public Command goToAngleCommand(double angle, Consumer<Boolean> toleranceConsumer, double maxOffSet, SubsystemBase... requirements) {
         return anglePositionControlCommand(() -> angle, toleranceConsumer, maxOffSet, requirements);

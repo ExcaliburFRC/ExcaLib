@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.excalib.additional_utilities.AllianceUtils;
-import frc.excalib.additional_utilities.Elastic;
 import frc.excalib.control.gains.SysidConfig;
 import frc.excalib.control.imu.IMU;
 import frc.excalib.control.math.Vector2D;
@@ -33,8 +32,6 @@ import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import static com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless;
-import static edu.wpi.first.apriltag.AprilTagFields.*;
-import static frc.excalib.additional_utilities.Elastic.Notification.NotificationLevel.WARNING;
 import static frc.robot.SwerveConstants.*;
 import static monologue.Annotations.Log;
 
@@ -45,7 +42,6 @@ public class Swerve extends SubsystemBase implements Logged {
     private final ModulesHolder modules;
     private final IMU imu;
     private final Odometry odometry;
-    PhotonAprilTagsCamera exampleCamera;
     private ChassisSpeeds desiredChassisSpeeds = new ChassisSpeeds();
     private final Trigger finishTrigger;
     private final Rotation2d PI = new Rotation2d(Math.PI);
@@ -79,7 +75,6 @@ public class Swerve extends SubsystemBase implements Logged {
 
         finishTrigger = new Trigger(xController::atSetpoint).and(yController::atSetpoint).and(angleController::atSetpoint).debounce(0.1);
         this.odometry = new Odometry(modules.getSwerveDriveKinematics(), modules.getModulesPositions(), this.imu::getZRotation, initialPosition);
-        PhotonAprilTagsCamera m_exampleCamera = new PhotonAprilTagsCamera("example", k2025ReefscapeWelded, new Transform3d(0, 0, 0, new Rotation3d()));
 
         swerveDriveKinematics = this.modules.getSwerveDriveKinematics();
         velocityLimit.put(0.1, 0.4);
@@ -175,10 +170,6 @@ public class Swerve extends SubsystemBase implements Logged {
                             );
                             double distance = getPose2D().getTranslation().getDistance(poseSetpoint.get().getTranslation());
                             vel.setMagnitude(Math.min(vel.getDistance(), velocityLimit.get(distance)));
-//                            vel = vel.rotate(poseSetpoint.get().getRotation());
-//                            vel.setX(Math.signum(vel.getX()) * Math.min(Math.abs(vel.getX()), 1.2));
-//                            vel.setY(Math.signum(vel.getY()) * Math.min(Math.abs(vel.getY()), 0.4));
-//                            vel = vel.rotate(poseSetpoint.get().getRotation().unaryMinus());
                             if (!AllianceUtils.isBlueAlliance()) return vel.rotate(PI);
                             return vel;
                         },
@@ -188,59 +179,6 @@ public class Swerve extends SubsystemBase implements Logged {
         ).until(finishTrigger).withName("PID To Pose");
     }
 
-    /**
-     * A method that drives the robot to a desired pose.
-     *
-     * @param setPoint The desired pose.
-     * @return A command that drives the robot to the wanted pose.
-     */
-    public Command driveToPoseCommand(Pose2d setPoint) {
-        return AutoBuilder.pathfindToPose(
-                setPoint,
-                MAX_PATH_CONSTRAINTS
-        ).withName("Pathfinding Command");
-    }
-
-    public Command driveToPoseWithOverrideCommand(
-            Pose2d setPoint,
-            BooleanSupplier override,
-            Supplier<Vector2D> velocityMPS,
-            DoubleSupplier omegaRadPerSec) {
-        Command driveToPoseCommand = driveToPoseCommand(setPoint);
-        return new SequentialCommandGroup(
-                driveToPoseCommand.until(() -> velocityMPS.get().getDistance() != 0 && override.getAsBoolean()),
-                driveCommand(
-                        velocityMPS,
-                        omegaRadPerSec,
-                        () -> true
-                ).until(() -> velocityMPS.get().getDistance() == 0)
-        ).repeatedly().until(driveToPoseCommand::isFinished).withName("Pathfinding With Override Command");
-    }
-
-    /**
-     * A method that drives the robot to the starting pose of a path, then follows the path.
-     *
-     * @param pathName The path which the robot needs to follow.
-     * @return A command that turns the robot to the wanted angle.
-     */
-    public Command pathfindThenFollowPathCommand(String pathName) {
-        PathPlannerPath path;
-        try {
-            path = PathPlannerPath.fromPathFile(pathName);
-        } catch (IOException | ParseException e) {
-            Elastic.sendNotification(new Elastic.Notification(
-                    WARNING,
-                    "Path Creating Error",
-                    "the path file " + pathName + " doesn't exist")
-            );
-            return new PrintCommand("this path file doesn't exist");
-        }
-
-        return AutoBuilder.pathfindThenFollowPath(
-                path,
-                MAX_PATH_CONSTRAINTS
-        );
-    }
 
     public Command resetAngleCommand() {
         return new InstantCommand(imu::resetIMU).ignoringDisable(true);
@@ -250,20 +188,6 @@ public class Swerve extends SubsystemBase implements Logged {
         Command coastCommand = modules.coastCommand().ignoringDisable(true).withName("Coast Command");
         coastCommand.addRequirements(this);
         return coastCommand;
-    }
-
-    /**
-     * Updates the robot's odometry.
-     */
-    public void updateOdometry() {
-        odometry.updateOdometry(modules.getModulesPositions());
-        Optional<EstimatedRobotPose> backPose = exampleCamera.getEstimatedGlobalPose(odometry.getEstimatedPosition());
-        backPose.ifPresent(
-                estimatedRobotPose -> odometry.addVisionMeasurement(
-                        estimatedRobotPose.estimatedPose.toPose2d(),
-                        estimatedRobotPose.timestampSeconds
-                )
-        );
     }
 
     /**
@@ -354,7 +278,7 @@ public class Swerve extends SubsystemBase implements Logged {
             config = RobotConfig.fromGUISettings();
         } catch (Exception e) {
             // Handle exception as needed
-            e.printStackTrace();
+            DriverStation.reportError("no RobotConfig file found", true);
         }
 
         // Configure AutoBuilder last

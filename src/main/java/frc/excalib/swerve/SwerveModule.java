@@ -25,21 +25,39 @@ import static frc.excalib.control.motor.motor_specs.DirectionState.REVERSE;
 import static frc.excalib.control.motor.motor_specs.IdleState.BRAKE;
 
 /**
- * A class representing a swerve module
- *
- * @author Yoav Cohen & Itay Keller
+ * A class representing a swerve module, which consists of a drive wheel and a turret for rotation.
+ * Handles velocity and angle control, optimization, and system identification routines.
  */
 public class SwerveModule implements Logged {
+    /** The drive wheel mechanism for this swerve module. */
     private final FlyWheel m_driveWheel;
+    /** The turret mechanism for module rotation. */
     private final Turret m_turret;
+    /** The physical location of the module on the robot. */
     public final Translation2d m_MODULE_LOCATION;
+    /** The maximum velocity for this module. */
     private final double m_MAX_VEL;
+    /** The module's angle plus 90 degrees, used for rotation vector calculations. */
     private final Rotation2d m_moduleAnglePlus90;
+    /** The current setpoint velocity vector for logging. */
     private final Vector2D m_setPoint = new Vector2D(0, 0);
+    /** The current position of the swerve module (distance and angle). */
     private final SwerveModulePosition m_swerveModulePosition;
 
     /**
-     * A constructor for the SwerveModule
+     * Constructs a SwerveModule with the given hardware and configuration.
+     *
+     * @param driveMotor The motor controlling the drive wheel.
+     * @param rotationMotor The motor controlling the turret rotation.
+     * @param angleGains PID gains for angle control.
+     * @param velocityGains PID gains for velocity control.
+     * @param PIDTolerance Tolerance for angle PID.
+     * @param moduleLocation The location of this module on the robot.
+     * @param angleSupplier Supplier for the current angle.
+     * @param maxVel The maximum velocity for this module.
+     * @param velocityConversionFactor Conversion factor for velocity units.
+     * @param positionConversionFactor Conversion factor for position units.
+     * @param rotationVelocityConversionFactor Conversion factor for rotation velocity.
      */
     public SwerveModule(Motor driveMotor, Motor rotationMotor, Gains angleGains, Gains velocityGains,
                         double PIDTolerance, Translation2d moduleLocation, DoubleSupplier angleSupplier,
@@ -63,12 +81,18 @@ public class SwerveModule implements Logged {
         m_MODULE_LOCATION = moduleLocation;
         m_MAX_VEL = maxVel;
 
-        // Precompute the rotated module angle (module angle + 90 degrees)
         m_moduleAnglePlus90 = m_MODULE_LOCATION.getAngle().plus(new Rotation2d(Math.PI / 2));
 
         m_swerveModulePosition = new SwerveModulePosition(m_driveWheel.logPosition(), m_turret.getPosition());
     }
 
+    /**
+     * Calculates the velocity ratio limit for the module based on translation and rotation velocities.
+     *
+     * @param translationVelocity The desired translation velocity vector.
+     * @param omegaRadPerSec The desired rotational velocity (radians per second).
+     * @return The ratio limit to ensure the module does not exceed its max velocity.
+     */
     double getVelocityRatioLimit(Vector2D translationVelocity, double omegaRadPerSec) {
         Vector2D rotationVector = new Vector2D(
                 omegaRadPerSec,
@@ -84,6 +108,14 @@ public class SwerveModule implements Logged {
         return m_MAX_VEL / sigmaVelDistance;
     }
 
+    /**
+     * Computes the combined velocity vector (translation + rotation), scaled by a limit.
+     *
+     * @param translationVelocity The translation velocity vector.
+     * @param omegaRadPerSec The rotational velocity (radians per second).
+     * @param velocityRatioLimit The scaling limit for the velocity.
+     * @return The resulting velocity vector.
+     */
     Vector2D getSigmaVelocity(Vector2D translationVelocity, double omegaRadPerSec, double velocityRatioLimit) {
         Vector2D rotationVector = new Vector2D(
                 omegaRadPerSec,
@@ -94,6 +126,12 @@ public class SwerveModule implements Logged {
         return sigmaVel;
     }
 
+    /**
+     * Determines if the module's velocity setpoint can be optimized by reversing direction.
+     *
+     * @param moduleVelocitySetPoint The desired velocity vector.
+     * @return True if optimization (reversing) is beneficial, false otherwise.
+     */
     public boolean isOptimizable(Vector2D moduleVelocitySetPoint) {
         Rotation2d setPointDirection = moduleVelocitySetPoint.getDirection();
         Rotation2d currentDirection = m_turret.getPosition();
@@ -103,6 +141,12 @@ public class SwerveModule implements Logged {
         return deltaDirection < 0;
     }
 
+    /**
+     * Creates a command to set the module's velocity using the given velocity supplier.
+     *
+     * @param moduleVelocity Supplier for the desired velocity vector.
+     * @return A command that sets the drive and turret to the desired velocity and direction.
+     */
     public Command setVelocityCommand(Supplier<Vector2D> moduleVelocity) {
         return new ParallelCommandGroup(
                 m_driveWheel.setDynamicVelocityCommand(() -> {
@@ -135,6 +179,14 @@ public class SwerveModule implements Logged {
         );
     }
 
+    /**
+     * Creates a command to set the module's velocity using translation, rotation, and a velocity limit.
+     *
+     * @param translationVelocity Supplier for the translation velocity vector.
+     * @param omegaRadPerSec Supplier for the rotational velocity (radians per second).
+     * @param velocityRatioLimit Supplier for the velocity ratio limit.
+     * @return A command that sets the module's velocity accordingly.
+     */
     public Command setVelocityCommand(
             Supplier<Vector2D> translationVelocity,
             DoubleSupplier omegaRadPerSec,
@@ -146,6 +198,11 @@ public class SwerveModule implements Logged {
                 velocityRatioLimit.getAsDouble()));
     }
 
+    /**
+     * Creates a command to set both the drive wheel and turret to coast mode.
+     *
+     * @return A command that coasts both mechanisms.
+     */
     public Command coastCommand() {
         return new ParallelCommandGroup(
                 m_driveWheel.coastCommand(),
@@ -153,6 +210,11 @@ public class SwerveModule implements Logged {
         );
     }
 
+    /**
+     * Sets the desired state (speed and angle) for the swerve module.
+     *
+     * @param wantedState The desired swerve module state.
+     */
     public void setDesiredState(SwerveModuleState wantedState) {
         Vector2D velocity = new Vector2D(wantedState.speedMetersPerSecond, wantedState.angle);
         double speed = velocity.getDistance();
@@ -177,7 +239,7 @@ public class SwerveModule implements Logged {
     }
 
     /**
-     * Gets the module's velocity.
+     * Gets the module's velocity as a vector.
      *
      * @return a Vector2D representing the velocity.
      */
@@ -194,36 +256,85 @@ public class SwerveModule implements Logged {
         return m_turret.getPosition();
     }
 
+    /**
+     * Gets the current position of the swerve module (distance and angle).
+     *
+     * @return The SwerveModulePosition object.
+     */
     public SwerveModulePosition getModulePosition() {
         return m_swerveModulePosition;
     }
 
+    /**
+     * Logs the current state (velocity and direction) of the module.
+     *
+     * @return The current SwerveModuleState.
+     */
     public SwerveModuleState logState() {
         Vector2D velocity = getVelocity();
         return new SwerveModuleState(velocity.getDistance(), velocity.getDirection());
     }
 
+    /**
+     * Logs the current setpoint state (velocity and direction) of the module.
+     *
+     * @return The setpoint SwerveModuleState.
+     */
     public SwerveModuleState logSetpointState() {
         return new SwerveModuleState(m_setPoint.getDistance(), m_setPoint.getDirection());
     }
 
-
+    /**
+     * Creates a SysId dynamic test command for the drive wheel.
+     *
+     * @param direction The direction for the test.
+     * @param swerve The swerve drive system.
+     * @param sysidConfig The SysId configuration.
+     * @return The command for dynamic SysId testing.
+     */
     public Command driveSysIdDynamic(SysIdRoutine.Direction direction, Swerve swerve, SysidConfig sysidConfig) {
         return m_driveWheel.sysIdDynamic(direction, swerve, m_driveWheel::logPosition, sysidConfig, false);
     }
 
+    /**
+     * Creates a SysId quasistatic test command for the drive wheel.
+     *
+     * @param direction The direction for the test.
+     * @param swerve The swerve drive system.
+     * @param sysidConfig The SysId configuration.
+     * @return The command for quasistatic SysId testing.
+     */
     public Command driveSysIdQuas(SysIdRoutine.Direction direction, Swerve swerve, SysidConfig sysidConfig) {
         return m_driveWheel.sysIdQuasistatic(direction, swerve, m_driveWheel::logPosition, sysidConfig, false);
     }
 
+    /**
+     * Creates a SysId dynamic test command for the turret angle.
+     *
+     * @param direction The direction for the test.
+     * @param swerve The swerve drive system.
+     * @param sysidConfig The SysId configuration.
+     * @return The command for dynamic SysId testing.
+     */
     public Command angleSysIdDynamic(SysIdRoutine.Direction direction, Swerve swerve, SysidConfig sysidConfig) {
         return m_turret.sysIdDynamic(direction, swerve, m_turret::logPosition, sysidConfig, false);
     }
 
+    /**
+     * Creates a SysId quasistatic test command for the turret angle.
+     *
+     * @param direction The direction for the test.
+     * @param swerve The swerve drive system.
+     * @param sysidConfig The SysId configuration.
+     * @return The command for quasistatic SysId testing.
+     */
     public Command angleSysIdQuas(SysIdRoutine.Direction direction, Swerve swerve, SysidConfig sysidConfig) {
         return m_turret.sysIdQuasistatic(direction, swerve, m_turret::logPosition, sysidConfig, false);
     }
 
+    /**
+     * Periodic update for the swerve module, updates the module position for logging and odometry.
+     */
     public void periodic() {
         m_swerveModulePosition.distanceMeters = m_driveWheel.logPosition();
         m_swerveModulePosition.angle = m_turret.getPosition();

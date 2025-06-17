@@ -15,7 +15,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import static edu.wpi.first.wpilibj.DriverStation.Alliance.Blue;
 
 /**
- * the purpose of this class is to supply different utility functions for functionality that depends on the robot alliance.
+ * the purpose of this class is to supply different utility functions
+ * for functionality that depends on the robot alliance.
  */
 public class AllianceUtils {
     public static final double FIELD_LENGTH_METERS = 17.548;

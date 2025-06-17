@@ -30,8 +30,6 @@ public class SwerveAccUtils {
     private static Vector2D applyAccelerationLimits(Vector2D currentVel, Vector2D velocityError) {
         Vector2D wantedAcceleration = velocityError.mul(1 / CYCLE_TIME);
 
-//        wantedAcceleration = applyForwardLimit(currentVel, wantedAcceleration);
-//        wantedAcceleration = applyTiltLimit(wantedAcceleration);
         wantedAcceleration = applySkidLimit(wantedAcceleration);
 
         return wantedAcceleration.mul(CYCLE_TIME);

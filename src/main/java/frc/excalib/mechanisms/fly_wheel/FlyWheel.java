@@ -63,7 +63,6 @@ public class FlyWheel extends Mechanism {
      * @return the FlyWheels current acceleration
      */
     private double getAcceleration() {
-        //TODO: move to current based calculations
         double currentTime = Timer.getFPGATimestamp();
         double currentVelocity = super.m_motor.getMotorVelocity();
         return (currentVelocity - lastVelocity) / (currentTime - lastTime);
