@@ -2,7 +2,7 @@
   "fileVersion": 1,
   "name": "ExcaLIB",
   "uuid": "51f3941b-7c54-4eb2-a531-580ac6f3a675",
-  "version": "1.0.0",
+  "version": "v0.1.0",
   "mavenUrls": [
     "https://jitpack.io"
   ],
