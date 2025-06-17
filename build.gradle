@@ -111,11 +111,16 @@ wpi.sim.addDriverstation()
 // in order to make them all available at runtime. Also adding the manifest so WPILib
 // knows where to look for our Robot Class.
 jar {
+    archiveBaseName.set("ExcaLIB")
+    archiveVersion.set(project.version)
+    archiveClassifier.set("")
+
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     from sourceSets.main.allSource
     manifest edu.wpi.first.gradlerio.GradleRIOPlugin.javaManifest(ROBOT_MAIN_CLASS)
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
+
 
 // Configure jar and deploy tasks
 deployArtifact.jarTask = jar
@@ -127,9 +132,6 @@ tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
 }
 
-jar {
-    archiveBaseName.set("ExcaLIB")
-    archiveVersion.set(project.version)
-    archiveClassifier.set("")
+artifacts {
+    archives jar
 }
-
