@@ -119,7 +119,6 @@ jar {
 
     from(sourceSets.main.output) {
         include 'frc/excalib'
-        include 'vendordeps'
     }
 
     manifest edu.wpi.first.gradlerio.GradleRIOPlugin.javaManifest(ROBOT_MAIN_CLASS)
