@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 public final class Turret extends Mechanism {
     private final ContinuousSoftLimit m_rotationLimit;
     private final PIDController m_anglePIDcontroller;
-    private final DoubleSupplier m_POSITION_SUPPLIER;
+    private final DoubleSupplier positionSupplier;
 
     /**
      * @param motor the turrets motor
@@ -40,12 +40,12 @@ public final class Turret extends Mechanism {
         m_anglePIDcontroller.setTolerance(PIDtolerance);
         m_anglePIDcontroller.enableContinuousInput(-Math.PI, Math.PI);
 
-        m_POSITION_SUPPLIER = positionSupplier;
+        this.positionSupplier = positionSupplier;
     }
 
     /**
      * @param wantedPosition a Rotation2d dynamic setpoint
-     * @return a Command that moves the turret tho the given setpoint
+     * @return a Command that moves the turret to the given setpoint
      */
     public Command setPositionCommand(Supplier<Rotation2d> wantedPosition, SubsystemBase... requirements){
         return new RunCommand(()-> setPosition(wantedPosition.get()), requirements);
@@ -56,17 +56,17 @@ public final class Turret extends Mechanism {
      * @param wantedPosition the wanted position of the turret.
      */
     public void setPosition(Rotation2d wantedPosition) {
-        double smartSetPoint = m_rotationLimit.getOptimizedSetpoint(getPosition().getRadians(), wantedPosition.getRadians());
-        double pid = m_anglePIDcontroller.calculate(m_POSITION_SUPPLIER.getAsDouble(), smartSetPoint);
-//        double ff =m_angleFFcontroller.getKs() * Math.signum(pid);
+        double smartSetPoint = m_rotationLimit.getOptimizedSetpoint(getPositionAsRotation().getRadians(), wantedPosition.getRadians());
+        double pid = m_anglePIDcontroller.calculate(positionSupplier.getAsDouble(), smartSetPoint);
         super.setVoltage(pid);
     }
+
 
     /**
      * @return get the position if the turret
      */
-    public Rotation2d getPosition() {
-        return new Rotation2d(m_POSITION_SUPPLIER.getAsDouble());
+    public Rotation2d getPositionAsRotation() {
+        return new Rotation2d(positionSupplier.getAsDouble());
     }
 
     /**

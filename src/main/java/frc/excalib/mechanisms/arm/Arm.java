@@ -18,19 +18,33 @@ import java.util.function.DoubleSupplier;
  * Provides commands for moving the arm to a specified angle or following a dynamic setpoint.
  */
 public class Arm extends Mechanism {
-    /** The mass properties of the arm. */
+    /**
+     * The mass properties of the arm.
+     */
     private final Mass m_mass;
-    /** The PID controller used for angle control. */
+    /**
+     * The PID controller used for angle control.
+     */
     private final PIDController m_PIDController;
-    /** Supplies the current angle of the arm (in radians). */
+    /**
+     * Supplies the current angle of the arm (in radians).
+     */
     public final DoubleSupplier ANGLE_SUPPLIER;
-    /** Velocity feedforward gain. */
+    /**
+     * Velocity feedforward gain.
+     */
     public final double m_kv;
-    /** Static feedforward gain. */
+    /**
+     * Static feedforward gain.
+     */
     public final double m_ks;
-    /** Gravity feedforward gain. */
+    /**
+     * Gravity feedforward gain.
+     */
     public final double m_kg;
-    /** Soft limit for velocity constraints. */
+    /**
+     * Soft limit for velocity constraints.
+     */
     public final SoftLimit m_VELOCITY_LIMIT;
 
     /**
@@ -57,32 +71,32 @@ public class Arm extends Mechanism {
     /**
      * Creates a command to move the arm to a dynamic angle setpoint using PID and feedforward control.
      *
-     * @param setPointSupplier  supplies the target angle setpoint (radians)
+     * @param setpointSupplier  supplies the target angle setpoint (radians)
      * @param toleranceConsumer consumer that receives whether the arm is within the specified tolerance
      * @param maxOffSet         maximum allowed error for tolerance (radians)
      * @param requirements      subsystems required by this command
      * @return a command that moves the arm to the specified dynamic setpoint
      */
     public Command anglePositionControlCommand(
-            DoubleSupplier setPointSupplier, Consumer<Boolean> toleranceConsumer,
+            DoubleSupplier setpointSupplier, Consumer<Boolean> toleranceConsumer,
             double maxOffSet, SubsystemBase... requirements) {
         final double dutyCycle = 0.02;
         return new RunCommand(
                 () -> {
-            double error = setPointSupplier.getAsDouble() - ANGLE_SUPPLIER.getAsDouble();
-            double velocitySetpoint = error / dutyCycle;
-            velocitySetpoint = m_VELOCITY_LIMIT.limit(velocitySetpoint);
-            double phyOutput =
-                    m_ks * Math.signum(velocitySetpoint) +
-                            m_kg * m_mass.getCenterOfMass().getX();
-            double pid = m_PIDController.calculate(
-                    ANGLE_SUPPLIER.getAsDouble(),
-                    setPointSupplier.getAsDouble()
-            );
-            double output = phyOutput + pid;
-            super.setVoltage(m_VELOCITY_LIMIT.limit(output));
-            toleranceConsumer.accept(Math.abs(error) < maxOffSet);
-        }, requirements);
+                    double error = setpointSupplier.getAsDouble() - ANGLE_SUPPLIER.getAsDouble();
+                    double velocitySetpoint = error / dutyCycle;
+                    velocitySetpoint = m_VELOCITY_LIMIT.limit(velocitySetpoint);
+                    double phyOutput =
+                            m_ks * Math.signum(velocitySetpoint) +
+                                    m_kg * m_mass.getCenterOfMass().getX();
+                    double pid = m_PIDController.calculate(
+                            ANGLE_SUPPLIER.getAsDouble(),
+                            setpointSupplier.getAsDouble()
+                    );
+                    double output = phyOutput + pid;
+                    super.setVoltage(m_VELOCITY_LIMIT.limit(output));
+                    toleranceConsumer.accept(Math.abs(error) < maxOffSet);
+                }, requirements);
     }
 
     /**

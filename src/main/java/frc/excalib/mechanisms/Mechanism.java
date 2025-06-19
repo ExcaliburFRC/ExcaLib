@@ -78,7 +78,7 @@ public class Mechanism implements Logged {
      * @return the velocity
      */
     @Log.NT
-    public double logVelocity() {
+    public double getVelocity() {
         return m_motor.getMotorVelocity();
     }
 
@@ -86,17 +86,17 @@ public class Mechanism implements Logged {
      * @return the position
      */
     @Log.NT
-    public double logPosition() {
+    public double getPosition() {
         return m_motor.getMotorPosition();
     }
 
     @Log.NT
-    public double logVoltage() {
+    public double getVoltage() {
         return m_motor.getVoltage();
     }
 
     @Log.NT
-    public double logCurrent() {
+    public double getCurrent() {
         return m_motor.getCurrent();
     }
 
@@ -117,7 +117,7 @@ public class Mechanism implements Logged {
                                 .voltage(m_appliedVoltage.mut_replace(
                                         m_motor.getVoltage(), Volts))
                                 .linearPosition(m_meter.mut_replace(sensorInput.getAsDouble(), Meters))
-                                .linearVelocity(m_Linearvelocity.mut_replace(logVelocity(), MetersPerSecond)),
+                                .linearVelocity(m_Linearvelocity.mut_replace(getVelocity(), MetersPerSecond)),
                         subsystem
                 )
         );
@@ -140,7 +140,7 @@ public class Mechanism implements Logged {
                                 .voltage(m_appliedVoltage.mut_replace(
                                         m_motor.getVoltage(), Volts))
                                 .angularPosition(m_radians.mut_replace(sensorInput.getAsDouble(), Radians))
-                                .angularVelocity(m_velocity.mut_replace(logVelocity(), RadiansPerSecond)),
+                                .angularVelocity(m_velocity.mut_replace(getVelocity(), RadiansPerSecond)),
                         subsystem
                 )
         );

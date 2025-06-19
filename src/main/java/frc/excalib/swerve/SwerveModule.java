@@ -83,7 +83,7 @@ public class SwerveModule implements Logged {
 
         m_moduleAnglePlus90 = m_MODULE_LOCATION.getAngle().plus(new Rotation2d(Math.PI / 2));
 
-        m_swerveModulePosition = new SwerveModulePosition(m_driveWheel.logPosition(), m_turret.getPosition());
+        m_swerveModulePosition = new SwerveModulePosition(m_driveWheel.getPosition(), m_turret.getPositionAsRotation());
     }
 
     /**
@@ -134,7 +134,7 @@ public class SwerveModule implements Logged {
      */
     public boolean isOptimizable(Vector2D moduleVelocitySetPoint) {
         Rotation2d setPointDirection = moduleVelocitySetPoint.getDirection();
-        Rotation2d currentDirection = m_turret.getPosition();
+        Rotation2d currentDirection = m_turret.getPositionAsRotation();
         double deltaDirection = Math.cos(setPointDirection.minus(currentDirection).getRadians());
 
         // If the dot product is negative, reversing the wheel direction may be beneficial
@@ -165,7 +165,7 @@ public class SwerveModule implements Logged {
                     double speed = velocity.getDistance();
 
                     if (speed < 0.1) {
-                        return m_turret.getPosition();
+                        return m_turret.getPositionAsRotation();
                     }
 
                     boolean optimize = isOptimizable(velocity);
@@ -222,7 +222,7 @@ public class SwerveModule implements Logged {
 
         if (speed < 0.1) {
             speed = 0.0;
-            direction = m_turret.getPosition();
+            direction = m_turret.getPositionAsRotation();
         }
 
         boolean optimize = isOptimizable(velocity);
@@ -253,7 +253,7 @@ public class SwerveModule implements Logged {
      * @return the current position of the turret.
      */
     Rotation2d getPosition() {
-        return m_turret.getPosition();
+        return m_turret.getPositionAsRotation();
     }
 
     /**
@@ -293,7 +293,7 @@ public class SwerveModule implements Logged {
      * @return The command for dynamic SysId testing.
      */
     public Command driveSysIdDynamic(SysIdRoutine.Direction direction, Swerve swerve, SysidConfig sysidConfig) {
-        return m_driveWheel.sysIdDynamic(direction, swerve, m_driveWheel::logPosition, sysidConfig, false);
+        return m_driveWheel.sysIdDynamic(direction, swerve, m_driveWheel::getPosition, sysidConfig, false);
     }
 
     /**
@@ -305,7 +305,7 @@ public class SwerveModule implements Logged {
      * @return The command for quasistatic SysId testing.
      */
     public Command driveSysIdQuas(SysIdRoutine.Direction direction, Swerve swerve, SysidConfig sysidConfig) {
-        return m_driveWheel.sysIdQuasistatic(direction, swerve, m_driveWheel::logPosition, sysidConfig, false);
+        return m_driveWheel.sysIdQuasistatic(direction, swerve, m_driveWheel::getPosition, sysidConfig, false);
     }
 
     /**
@@ -317,7 +317,7 @@ public class SwerveModule implements Logged {
      * @return The command for dynamic SysId testing.
      */
     public Command angleSysIdDynamic(SysIdRoutine.Direction direction, Swerve swerve, SysidConfig sysidConfig) {
-        return m_turret.sysIdDynamic(direction, swerve, m_turret::logPosition, sysidConfig, false);
+        return m_turret.sysIdDynamic(direction, swerve, m_turret::getPosition, sysidConfig, false);
     }
 
     /**
@@ -329,14 +329,14 @@ public class SwerveModule implements Logged {
      * @return The command for quasistatic SysId testing.
      */
     public Command angleSysIdQuas(SysIdRoutine.Direction direction, Swerve swerve, SysidConfig sysidConfig) {
-        return m_turret.sysIdQuasistatic(direction, swerve, m_turret::logPosition, sysidConfig, false);
+        return m_turret.sysIdQuasistatic(direction, swerve, m_turret::getPosition, sysidConfig, false);
     }
 
     /**
      * Periodic update for the swerve module, updates the module position for logging and odometry.
      */
     public void periodic() {
-        m_swerveModulePosition.distanceMeters = m_driveWheel.logPosition();
-        m_swerveModulePosition.angle = m_turret.getPosition();
+        m_swerveModulePosition.distanceMeters = m_driveWheel.getPosition();
+        m_swerveModulePosition.angle = m_turret.getPositionAsRotation();
     }
 }

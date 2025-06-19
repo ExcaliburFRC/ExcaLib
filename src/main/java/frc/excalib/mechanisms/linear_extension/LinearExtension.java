@@ -89,7 +89,7 @@ public class LinearExtension extends Mechanism {
      *
      * @return the motor voltage (volts)
      */
-    public double logVoltage() {
+    public double getVoltage() {
         return m_motor.getVoltage();
     }
 
@@ -98,7 +98,7 @@ public class LinearExtension extends Mechanism {
      *
      * @return the motor velocity (meters per second)
      */
-    public double logVelocity() {
+    public double getVelocity() {
         return m_motor.getMotorVelocity();
     }
 
@@ -107,7 +107,7 @@ public class LinearExtension extends Mechanism {
      *
      * @return the extension position (meters)
      */
-    public double logPosition() {
+    public double getPosition() {
         return m_positionSupplier.getAsDouble();
     }
 
