@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.excalib.control.gains.Gains;
+import frc.excalib.control.limits.SoftLimit;
 import frc.excalib.control.motor.controllers.Motor;
 import frc.excalib.mechanisms.Mechanism;
 
@@ -27,6 +28,8 @@ public class LinearExtension extends Mechanism {
     private final double m_tolerance;
     /** Gains for PID and feedforward control. */
     private final Gains m_gains;
+    /** Soft limit for the elevator hieght in meters */
+    private final SoftLimit m_heightLimit;
     /** Motion profile constraints (max velocity and acceleration). */
     private final TrapezoidProfile.Constraints m_constraints;
 
@@ -41,13 +44,15 @@ public class LinearExtension extends Mechanism {
      * @param tolerance        allowed position tolerance (meters)
      */
     public LinearExtension(Motor motor, DoubleSupplier positionSupplier, DoubleSupplier angleSupplier,
-                           Gains gains, TrapezoidProfile.Constraints constraints, double tolerance) {
+                           TrapezoidProfile.Constraints constraints, SoftLimit heightLimit,
+                           Gains gains, double tolerance) {
         super(motor);
         m_positionSupplier = positionSupplier;
         m_angleSupplier = angleSupplier;
         m_gains = gains;
         m_PIDController = new PIDController(gains.kp, gains.ki, gains.kd);
         m_constraints = constraints;
+        m_heightLimit = heightLimit;
         m_tolerance = tolerance;
     }
 
@@ -61,6 +66,7 @@ public class LinearExtension extends Mechanism {
      */
     public Command extendCommand(DoubleSupplier lengthSetpoint, SubsystemBase... requirements) {
         return new RunCommand(() -> {
+            double lengthLimitedSetpoint = m_heightLimit.limit(lengthSetpoint.getAsDouble());
             TrapezoidProfile profile = new TrapezoidProfile(m_constraints);
             TrapezoidProfile.State state =
                     profile.calculate(
@@ -68,11 +74,11 @@ public class LinearExtension extends Mechanism {
                             new TrapezoidProfile.State(
                                     m_positionSupplier.getAsDouble(),
                                     super.m_motor.getMotorVelocity()),
-                            new TrapezoidProfile.State(lengthSetpoint.getAsDouble(), 0)
+                            new TrapezoidProfile.State(lengthLimitedSetpoint, 0)
                     );
             double pidValue = m_PIDController.calculate(m_positionSupplier.getAsDouble(), state.position);
             double ff =
-                    (Math.abs(m_positionSupplier.getAsDouble() - lengthSetpoint.getAsDouble()) > m_tolerance) ?
+                    (Math.abs(m_positionSupplier.getAsDouble() - lengthLimitedSetpoint) > m_tolerance) ?
 
                                     m_gains.ks * Math.signum(state.velocity) +
                                     m_gains.kv * state.velocity +
