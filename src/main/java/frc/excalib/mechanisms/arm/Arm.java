@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.excalib.control.gains.Gains;
+import frc.excalib.control.limits.ContinuousSoftLimit;
 import frc.excalib.control.limits.SoftLimit;
 import frc.excalib.control.math.physics.Mass;
 import frc.excalib.control.motor.controllers.Motor;
@@ -18,20 +19,38 @@ import java.util.function.DoubleSupplier;
  * Provides commands for moving the arm to a specified angle or following a dynamic setpoint.
  */
 public class Arm extends Mechanism {
-    /** The mass properties of the arm. */
+    /**
+     * The mass properties of the arm.
+     */
     private final Mass m_mass;
-    /** The PID controller used for angle control. */
+    /**
+     * The PID controller used for angle control.
+     */
     private final PIDController m_PIDController;
-    /** Supplies the current angle of the arm (in radians). */
+    /**
+     * Supplies the current angle of the arm (in radians).
+     */
     public final DoubleSupplier ANGLE_SUPPLIER;
-    /** Velocity feedforward gain. */
+    /**
+     * Velocity feedforward gain.
+     */
     public final double m_kv;
-    /** Static feedforward gain. */
+    /**
+     * Static feedforward gain.
+     */
     public final double m_ks;
-    /** Gravity feedforward gain. */
+    /**
+     * Gravity feedforward gain.
+     */
     public final double m_kg;
-    /** Soft limit for velocity constraints. */
+    /**
+     * Soft limit for velocity constraints.
+     */
     public final SoftLimit m_VELOCITY_LIMIT;
+    /**
+     * Continuous soft limit for the arm angle in radians.
+     */
+    public final ContinuousSoftLimit m_ANGLE_RAD_LIMIT;
 
     /**
      * Constructs an Arm mechanism.
@@ -39,14 +58,17 @@ public class Arm extends Mechanism {
      * @param motor         the motor controller for the arm
      * @param angleSupplier supplies the current arm angle (radians)
      * @param velocityLimit soft limit for velocity
+     * @param angleRadLimit continuous soft limit for angle in radians
      * @param gains         PID and feedforward gains
      * @param mass          mass properties of the arm
      */
     public Arm(Motor motor, DoubleSupplier angleSupplier,
-               SoftLimit velocityLimit, Gains gains, Mass mass) {
+               SoftLimit velocityLimit, ContinuousSoftLimit angleRadLimit,
+               Gains gains, Mass mass) {
         super(motor);
         ANGLE_SUPPLIER = angleSupplier;
         m_VELOCITY_LIMIT = velocityLimit;
+        m_ANGLE_RAD_LIMIT = angleRadLimit;
         m_kg = gains.kg;
         m_kv = gains.kv;
         m_ks = gains.ks;
@@ -67,9 +89,9 @@ public class Arm extends Mechanism {
             DoubleSupplier setPointSupplier, Consumer<Boolean> toleranceConsumer,
             double maxOffSet, SubsystemBase... requirements) {
         final double dutyCycle = 0.02;
-        return new RunCommand(
-                () -> {
-            double error = setPointSupplier.getAsDouble() - ANGLE_SUPPLIER.getAsDouble();
+        return new RunCommand(() -> {
+            double wantedSetpoint = m_ANGLE_RAD_LIMIT.getOptimizedSetpoint(ANGLE_SUPPLIER.getAsDouble(), setPointSupplier.getAsDouble());
+            double error = wantedSetpoint - ANGLE_SUPPLIER.getAsDouble();
             double velocitySetpoint = error / dutyCycle;
             velocitySetpoint = m_VELOCITY_LIMIT.limit(velocitySetpoint);
             double phyOutput =
@@ -77,7 +99,7 @@ public class Arm extends Mechanism {
                             m_kg * m_mass.getCenterOfMass().getX();
             double pid = m_PIDController.calculate(
                     ANGLE_SUPPLIER.getAsDouble(),
-                    setPointSupplier.getAsDouble()
+                    wantedSetpoint
             );
             double output = phyOutput + pid;
             super.setVoltage(m_VELOCITY_LIMIT.limit(output));
