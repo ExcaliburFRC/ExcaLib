@@ -18,25 +18,39 @@ import java.util.function.DoubleSupplier;
  * for extending to a specified length with physical constraints.
  */
 public class LinearExtension extends Mechanism {
-    /** Supplies the current position of the extension (meters). */
+    /**
+     * Supplies the current position of the extension (meters).
+     */
     private final DoubleSupplier m_positionSupplier;
-    /** Supplies the current angle of the extension (radians). */
+    /**
+     * Supplies the current angle of the extension (radians).
+     */
     private final DoubleSupplier m_angleSupplier;
-    /** PID controller for position control. */
+    /**
+     * PID controller for position control.
+     */
     private final PIDController m_PIDController;
-    /** Allowed position tolerance (meters). */
+    /**
+     * Allowed position tolerance (meters).
+     */
     private final double m_tolerance;
-    /** Gains for PID and feedforward control. */
+    /**
+     * Gains for PID and feedforward control.
+     */
     private final Gains m_gains;
-    /** Soft limit for the elevator hieght in meters */
+    /**
+     * Soft limit for the elevator hieght in meters
+     */
     private final SoftLimit m_heightLimit;
-    /** Motion profile constraints (max velocity and acceleration). */
+    /**
+     * Motion profile constraints (max velocity and acceleration).
+     */
     private final TrapezoidProfile.Constraints m_constraints;
 
     /**
      * Constructs a LinearExtension mechanism.
      *
-     * @param motor           the motor controller for the extension
+     * @param motor            the motor controller for the extension
      * @param positionSupplier supplies the current extension position (meters)
      * @param angleSupplier    supplies the current extension angle (radians)
      * @param gains            PID and feedforward gains
@@ -80,41 +94,13 @@ public class LinearExtension extends Mechanism {
             double ff =
                     (Math.abs(m_positionSupplier.getAsDouble() - lengthLimitedSetpoint) > m_tolerance) ?
 
-                                    m_gains.ks * Math.signum(state.velocity) +
+                            m_gains.ks * Math.signum(state.velocity) +
                                     m_gains.kv * state.velocity +
                                     m_gains.kg * Math.sin(m_angleSupplier.getAsDouble()) :
 
-                                    m_gains.kg * Math.sin(m_angleSupplier.getAsDouble());
+                            m_gains.kg * Math.sin(m_angleSupplier.getAsDouble());
             double output = ff + pidValue;
             setVoltage(output);
         }, requirements);
     }
-
-    /**
-     * Logs the current voltage applied to the motor.
-     *
-     * @return the motor voltage (volts)
-     */
-    public double logVoltage() {
-        return m_motor.getVoltage();
-    }
-
-    /**
-     * Logs the current velocity of the motor.
-     *
-     * @return the motor velocity (meters per second)
-     */
-    public double logVelocity() {
-        return m_motor.getMotorVelocity();
-    }
-
-    /**
-     * Logs the current position of the extension.
-     *
-     * @return the extension position (meters)
-     */
-    public double logPosition() {
-        return m_positionSupplier.getAsDouble();
-    }
-
 }
