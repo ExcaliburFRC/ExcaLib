@@ -53,6 +53,11 @@ public class TalonFXMotor extends TalonFX implements Motor {
     }
 
     @Override
+    public void stopMotor() {
+        super.stopMotor();
+    }
+
+    @Override
     public double getMotorPosition() {
         return m_positionConversionFactor * super.getPosition().getValueAsDouble();
     }

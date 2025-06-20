@@ -3,7 +3,6 @@ package frc.excalib.mechanisms.turret;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.excalib.control.gains.Gains;
@@ -55,7 +54,7 @@ public final class Turret extends Mechanism {
      * @param wantedPosition the wanted position of the turret.
      */
     public void setPosition(Rotation2d wantedPosition) {
-        double smartSetPoint = m_rotationLimit.getOptimizedSetpoint(getPosition().getRadians(), wantedPosition.getRadians());
+        double smartSetPoint = m_rotationLimit.getOptimizedSetpoint(getTurretPosition().getRadians(), wantedPosition.getRadians());
         double pid = m_anglePIDcontroller.calculate(m_POSITION_SUPPLIER.getAsDouble(), smartSetPoint);
 //        double ff =m_angleFFcontroller.getKs() * Math.signum(pid);
         super.setVoltage(pid);
@@ -64,14 +63,7 @@ public final class Turret extends Mechanism {
     /**
      * @return get the position if the turret
      */
-    public Rotation2d getPosition() {
+    public Rotation2d getTurretPosition() {
         return new Rotation2d(m_POSITION_SUPPLIER.getAsDouble());
-    }
-
-    /**
-     * @return an Instant Command to stop the turret
-     */
-    public Command stopTurret(SubsystemBase... requirements) {
-        return new InstantCommand(super.m_motor::stopMotor, requirements);
     }
 }

@@ -31,14 +31,12 @@ public class Mechanism implements Logged {
     protected final MutDistance m_meter = Meters.mutable(0);
     protected final MutAngularVelocity m_velocity = RadiansPerSecond.mutable(0);
     protected final MutLinearVelocity m_Linearvelocity = MetersPerSecond.mutable(0);
-    private final IdleState m_DEFAULT_IDLE_STATE;
 
     /**
      * @param motor the motor controlling the mechanism
      */
     public Mechanism(Motor motor) {
         m_motor = motor;
-        m_DEFAULT_IDLE_STATE = m_motor.getIdleState();
     }
 
     /**
@@ -70,15 +68,26 @@ public class Mechanism implements Logged {
     /**
      * @return an instant command to stop the motor
      */
-    public Command stopMotorCommand(SubsystemBase... requirements) {
-        return new InstantCommand(() -> setOutput(0), requirements);
+    public Command stopCommand(SubsystemBase... requirements) {
+        return new InstantCommand(m_motor::stopMotor, requirements);
+    }
+
+    /**
+     * @return a command which puts the mechanism on coast mode
+     */
+    public Command coastCommand(SubsystemBase... requirements) {
+        return new StartEndCommand(
+                () -> m_motor.setIdleState(IdleState.COAST),
+                () -> m_motor.setIdleState(IdleState.BRAKE),
+                requirements
+        ).ignoringDisable(true);
     }
 
     /**
      * @return the velocity
      */
     @Log.NT
-    public double logVelocity() {
+    public double getVelocity() {
         return m_motor.getMotorVelocity();
     }
 
@@ -86,17 +95,17 @@ public class Mechanism implements Logged {
      * @return the position
      */
     @Log.NT
-    public double logPosition() {
+    public double getPosition() {
         return m_motor.getMotorPosition();
     }
 
     @Log.NT
-    public double logVoltage() {
+    public double getVoltage() {
         return m_motor.getVoltage();
     }
 
     @Log.NT
-    public double logCurrent() {
+    public double getCurrent() {
         return m_motor.getCurrent();
     }
 
@@ -117,7 +126,7 @@ public class Mechanism implements Logged {
                                 .voltage(m_appliedVoltage.mut_replace(
                                         m_motor.getVoltage(), Volts))
                                 .linearPosition(m_meter.mut_replace(sensorInput.getAsDouble(), Meters))
-                                .linearVelocity(m_Linearvelocity.mut_replace(logVelocity(), MetersPerSecond)),
+                                .linearVelocity(m_Linearvelocity.mut_replace(getVelocity(), MetersPerSecond)),
                         subsystem
                 )
         );
@@ -140,34 +149,23 @@ public class Mechanism implements Logged {
                                 .voltage(m_appliedVoltage.mut_replace(
                                         m_motor.getVoltage(), Volts))
                                 .angularPosition(m_radians.mut_replace(sensorInput.getAsDouble(), Radians))
-                                .angularVelocity(m_velocity.mut_replace(logVelocity(), RadiansPerSecond)),
+                                .angularVelocity(m_velocity.mut_replace(getVelocity(), RadiansPerSecond)),
                         subsystem
                 )
         );
     }
 
     /**
-     * @return a command which puts the mechanism on coast mode
-     */
-    public Command coastCommand(SubsystemBase... requirements) {
-        return new StartEndCommand(
-                () -> m_motor.setIdleState(IdleState.COAST),
-                () -> m_motor.setIdleState(m_DEFAULT_IDLE_STATE),
-                requirements
-        ).ignoringDisable(true);
-    }
-
-    /**
      * Creates a SysIdRoutine for performing a quasistatic test on the mechanism.
      *
-     * @param direction the direction of the test (forward or backward)
-     * @param subsystem the subsystem associated with the mechanism
+     * @param direction        the direction of the test (forward or backward)
+     * @param subsystem        the subsystem associated with the mechanism
      * @param positionSupplier a supplier providing the position of the mechanism
-     * @param config the configuration for the SysIdRoutine
-     * @param isLinear true if the mechanism is linear, false if it is angular
+     * @param config           the configuration for the SysIdRoutine
+     * @param isLinear         true if the mechanism is linear, false if it is angular
      * @return a Command that performs a quasistatic test
      */
-    public Command sysIdQuasistatic(Direction direction,SubsystemBase subsystem, DoubleSupplier positionSupplier, SysidConfig config, boolean isLinear) {
+    public Command sysIdQuasistatic(Direction direction, SubsystemBase subsystem, DoubleSupplier positionSupplier, SysidConfig config, boolean isLinear) {
         if (isLinear) return getLinearSysIdRoutine(subsystem, positionSupplier, config).quasistatic(direction);
         return getAngularSysIdRoutine(subsystem, positionSupplier, config).quasistatic(direction);
     }
@@ -175,16 +173,16 @@ public class Mechanism implements Logged {
     /**
      * Creates a SysIdRoutine for performing a dynamic test on the mechanism.
      *
-     * @param direction the direction of the test (forward or backward)
-     * @param subsystem the subsystem associated with the mechanism
+     * @param direction        the direction of the test (forward or backward)
+     * @param subsystem        the subsystem associated with the mechanism
      * @param positionSupplier a supplier providing the position of the mechanism
-     * @param config the configuration for the SysIdRoutine
-     * @param isLinear true if the mechanism is linear, false if it is angular
+     * @param config           the configuration for the SysIdRoutine
+     * @param isLinear         true if the mechanism is linear, false if it is angular
      * @return a Command that performs a dynamic test
      */
     public Command sysIdDynamic(Direction direction, SubsystemBase subsystem, DoubleSupplier positionSupplier, SysidConfig config, boolean isLinear) {
         if (isLinear)
             return getLinearSysIdRoutine(subsystem, positionSupplier, config).dynamic(direction);
-        return getAngularSysIdRoutine(subsystem, positionSupplier, config).dynamic(direction).withName("quadForward");
+        return getAngularSysIdRoutine(subsystem, positionSupplier, config).dynamic(direction);
     }
 }

@@ -77,13 +77,6 @@ public class FlyWheel extends Mechanism {
     }
 
     /**
-     * @return the current velocity of the FlyWheel.
-     */
-    public double getVelocity() {
-        return super.m_motor.getMotorVelocity();
-    }
-
-    /**
      * @return the FlyWheels current acceleration
      */
     private double getAcceleration() {
