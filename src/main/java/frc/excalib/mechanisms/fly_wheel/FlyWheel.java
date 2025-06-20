@@ -60,15 +60,6 @@ public class FlyWheel extends Mechanism {
     }
 
     /**
-     * @return the FlyWheels current acceleration
-     */
-    private double getAcceleration() {
-        double currentTime = Timer.getFPGATimestamp();
-        double currentVelocity = super.m_motor.getMotorVelocity();
-        return (currentVelocity - lastVelocity) / (currentTime - lastTime);
-    }
-
-    /**
      * @param velocity the dynamic velocity setpoint
      * @return a command which controls the FlyWheels velocity
      */
@@ -85,15 +76,24 @@ public class FlyWheel extends Mechanism {
         super.setVoltage(pid + ff);
     }
 
-    public void periodic() {
-        lastTime = Timer.getFPGATimestamp();
-        lastVelocity = super.m_motor.getMotorVelocity();
-    }
-
     /**
      * @return the current velocity of the FlyWheel.
      */
     public double getVelocity() {
         return super.m_motor.getMotorVelocity();
+    }
+
+    /**
+     * @return the FlyWheels current acceleration
+     */
+    private double getAcceleration() {
+        double currentTime = Timer.getFPGATimestamp();
+        double currentVelocity = super.m_motor.getMotorVelocity();
+        return (currentVelocity - lastVelocity) / (currentTime - lastTime);
+    }
+
+    public void periodic() {
+        lastTime = Timer.getFPGATimestamp();
+        lastVelocity = super.m_motor.getMotorVelocity();
     }
 }
