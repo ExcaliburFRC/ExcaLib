@@ -56,7 +56,7 @@ public class FlyWheel extends Mechanism {
                             m_gains.ka * state.velocity;
                     double pid = m_pidController.calculate(super.m_motor.getMotorVelocity(), state.position);
                     setVoltage(pid + ff);
-                });
+                }, requirements);
     }
 
     /**
