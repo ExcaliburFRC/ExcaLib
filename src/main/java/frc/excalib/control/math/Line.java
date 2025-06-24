@@ -2,6 +2,8 @@ package frc.excalib.control.math;
 
 import edu.wpi.first.math.geometry.Translation2d;
 
+import java.awt.*;
+
 /**
  * Represents a line in a 2D plane, defined by the equation ax + by + c = 0.
  */
@@ -24,6 +26,28 @@ public class Line {
         this.a = a;
         this.b = b;
         this.c = c;
+    }
+
+    /**
+     * Constructs a Line object with two given points.
+     *
+     * @param pointA the first point
+     * @param pointB the second point
+     */
+    public Line(Point pointA, Point pointB) {
+        double MutA = pointB.getY() - pointA.getY();
+        double MutB = pointA.getX() - pointB.getX();
+        double MutC = pointB.getX() * pointA.getY() - pointA.getX() * pointB.getY();
+
+        if (MutA < 0 || (MutA == 0 && MutB < 0)) {
+            MutA *= -1;
+            MutB *= -1;
+            MutC *= -1;
+        }
+
+        this.a = MutA;
+        this.b = MutB;
+        this.c = MutC;
     }
 
     /**
