@@ -11,6 +11,10 @@ import java.util.Optional;
  */
 public class MathUtils {
 
+    private static boolean isPositive(double val) {
+        return val > 0;
+    }
+
     /**
      * Ensures that the absolute value of the given number does not exceed the specified limit.
      * @param value     The value to be limited.
@@ -28,7 +32,7 @@ public class MathUtils {
      * @return The value clamped to the specified limit.
      */
     public static double limitTo(double value, double limit) {
-        if ((limit > 0 && limit < value) || (limit < 0 && limit > value)) {
+        if ((isPositive(value) && limit < value) || (!isPositive(value) && limit > value)) {
             return limit;
         }
         return value;
