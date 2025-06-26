@@ -1,5 +1,6 @@
 package frc.excalib.mechanisms.fly_wheel;
 
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -93,6 +94,7 @@ public class FlyWheel extends Mechanism {
     /**
      * @return the current velocity of the FlyWheel.
      */
+    @Logged
     public double getVelocity() {
         return super.m_motor.getMotorVelocity();
     }

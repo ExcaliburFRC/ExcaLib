@@ -1,20 +1,19 @@
 package frc.excalib.swerve;
 
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.excalib.control.math.Vector2D;
-import monologue.Logged;
 
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import static frc.robot.SwerveConstants.MAX_VEL;
-import static monologue.Annotations.Log;
 
-public class ModulesHolder implements Logged {
+public class ModulesHolder {
     public final SwerveModule m_frontLeft;
     public final SwerveModule m_frontRight;
     public final SwerveModule m_backLeft;
@@ -89,7 +88,7 @@ public class ModulesHolder implements Logged {
         return new Vector2D(totalX * 0.25, totalY * 0.25);
     }
 
-    @Log.NT(key = "angular vel")
+    @Logged(name = "rotational velcotiy")
     public double getOmegaRadPerSec() {
         return new SwerveDriveKinematics(
                 m_frontLeft.m_MODULE_LOCATION,
@@ -99,7 +98,7 @@ public class ModulesHolder implements Logged {
         ).toChassisSpeeds(logStates()).omegaRadiansPerSecond;
     }
 
-    @Log.NT(key = "swerve velocity")
+    @Logged(name = "swerve velocity")
     public double getVelocityDistance() {
         return getVelocity().getDistance();
     }
@@ -175,7 +174,7 @@ public class ModulesHolder implements Logged {
      *
      * @return An array of SwerveModuleState representing the states of the modules.
      */
-    @Log.NT(key = "Swerve States")
+    @Logged(name = "swerve states")
     public SwerveModuleState[] logStates() {
         return new SwerveModuleState[]{
                 m_frontLeft.logState(),
@@ -185,7 +184,7 @@ public class ModulesHolder implements Logged {
         };
     }
 
-    @Log.NT(key = "SetPoints")
+    @Logged(name = "swerve setpoints")
     public SwerveModuleState[] logSetPointStates() {
         return new SwerveModuleState[]{
                 m_frontLeft.logSetpointState(),

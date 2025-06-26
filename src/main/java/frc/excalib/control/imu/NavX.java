@@ -1,11 +1,10 @@
 package frc.excalib.control.imu;
 
 import com.studica.frc.AHRS;
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
-import monologue.Annotations.Log;
-import monologue.Logged;
 
 import static com.studica.frc.AHRS.NavXComType.kMXP_SPI;
 
@@ -14,7 +13,8 @@ import static com.studica.frc.AHRS.NavXComType.kMXP_SPI;
  * Extends {@link AHRS} to provide orientation and acceleration data,
  * with support for rotation offsets and logging.
  */
-public class NavX extends AHRS implements IMU, Logged {
+@Logged
+public class NavX extends AHRS implements IMU {
     /** The offset rotation applied to all orientation readings. */
     private Rotation3d m_offsetRotation;
 
@@ -64,7 +64,7 @@ public class NavX extends AHRS implements IMU, Logged {
      * @return the X-axis acceleration in meters per second squared
      */
     @Override
-    @Log.NT
+    @Logged
     public double getAccX() {
         return super.getRawAccelX();
     }
@@ -75,7 +75,7 @@ public class NavX extends AHRS implements IMU, Logged {
      * @return the Y-axis acceleration in meters per second squared
      */
     @Override
-    @Log.NT
+    @Logged
     public double getAccY() {
         return super.getRawAccelY();
     }
@@ -86,7 +86,7 @@ public class NavX extends AHRS implements IMU, Logged {
      * @return the Z-axis acceleration in meters per second squared
      */
     @Override
-    @Log.NT
+    @Logged
     public double getAccZ() {
         return super.getWorldLinearAccelZ();
     }

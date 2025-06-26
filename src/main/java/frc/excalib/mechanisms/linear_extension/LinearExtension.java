@@ -1,5 +1,6 @@
 package frc.excalib.mechanisms.linear_extension;
 
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -98,6 +99,7 @@ public class LinearExtension extends Mechanism {
      *
      * @return the motor velocity (meters per second)
      */
+    @Logged
     public double getVelocity() {
         return m_motor.getMotorVelocity();
     }

@@ -1,7 +1,7 @@
 package frc.excalib.control.limits;
 
-import monologue.Annotations.Log;
-import monologue.Logged;
+
+import edu.wpi.first.epilogue.Logged;
 
 import java.util.function.DoubleSupplier;
 
@@ -9,7 +9,8 @@ import java.util.function.DoubleSupplier;
  * A class representing the allowed one dimensional range for the state of a system.
  * the range is defined by two dynamic limits
  */
-public class SoftLimit implements Logged {
+@Logged
+public class SoftLimit {
     private final DoubleSupplier m_minLimit, m_maxLimit;
 
     /**
@@ -27,7 +28,7 @@ public class SoftLimit implements Logged {
      * @param val the value to check
      * @return if the value is in the limit or not
      */
-    @Log.NT
+    @Logged
     public boolean within(double val) {
         return (m_maxLimit.getAsDouble() >= val) && (val >= m_minLimit.getAsDouble());
     }
@@ -37,7 +38,7 @@ public class SoftLimit implements Logged {
      * @param val the value to limit
      * @return the limited value
      */
-    @Log.NT
+    @Logged
     public double limit(double val) {
         if (within(val)) {
             return val;
@@ -51,7 +52,7 @@ public class SoftLimit implements Logged {
     /**
      * @return the current maximal limit of the represented range
      */
-    @Log.NT
+    @Logged
     public double getMaxLimit() {
         return m_maxLimit.getAsDouble();
     }
@@ -59,7 +60,7 @@ public class SoftLimit implements Logged {
     /**
      * @return the current minimal limit of the represented range
      */
-    @Log.NT
+    @Logged
     public double getMinLimit() {
         return m_minLimit.getAsDouble();
     }

@@ -3,7 +3,7 @@ package frc.excalib.swerve;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.path.PathPlannerPath;
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
@@ -21,24 +21,18 @@ import frc.excalib.control.math.Vector2D;
 import frc.excalib.control.motor.controllers.SparkMaxMotor;
 import frc.excalib.control.motor.controllers.TalonFXMotor;
 import frc.excalib.slam.mapper.Odometry;
-import monologue.Logged;
-import org.json.simple.parser.ParseException;
-import org.photonvision.EstimatedRobotPose;
 
-import java.io.IOException;
-import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import static com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless;
 import static frc.robot.SwerveConstants.*;
-import static monologue.Annotations.Log;
 
 /**
  * A class representing a swerve subsystem.
  */
-public class Swerve extends SubsystemBase implements Logged {
+public class Swerve extends SubsystemBase {
     private final ModulesHolder modules;
     private final IMU imu;
     private final Odometry odometry;
@@ -204,17 +198,17 @@ public class Swerve extends SubsystemBase implements Logged {
      *
      * @return The current rotation of the robot.
      */
-    @Log.NT(key = "Robot Rotation")
+    @Logged(name = "Robot Rotation")
     public Rotation2d getRotation2D() {
         return getPose2D().getRotation();
     }
 
-    @Log.NT(key = "Angle Setpoint")
+    @Logged(name = "Angle Setpoint")
     public Rotation2d getAngleSetpoint() {
         return angleSetpoint.get();
     }
 
-    @Log.NT(key = "Translation Setpoint")
+    @Logged(name = "Translation Setpoint")
     public Translation2d getTranslationSetpoint() {
         return translationSetpoint.get();
     }
@@ -224,7 +218,7 @@ public class Swerve extends SubsystemBase implements Logged {
      *
      * @return The current pose of the robot.
      */
-    @Log.NT(key = "Robot Pose")
+    @Logged(name = "Robot Pose")
     public Pose2d getPose2D() {
         return odometry.getRobotPose();
     }
@@ -243,7 +237,7 @@ public class Swerve extends SubsystemBase implements Logged {
      *
      * @return The robot's acceleration as a Vector2D.
      */
-    @Log.NT(key = "Acceleration")
+    @Logged(name = "Acceleration")
     public double getAccelerationDistance() {
         return new Vector2D(imu.getAccX(), imu.getAccY()).getDistance();
     }
@@ -253,12 +247,12 @@ public class Swerve extends SubsystemBase implements Logged {
      *
      * @return The robot's speed as a ChassisSpeeds.
      */
-    @Log.NT(key = "Measured Chassis Speeds")
+    @Logged(name = "Measured Chassis Speeds")
     public ChassisSpeeds getRobotRelativeSpeeds() {
         return swerveDriveKinematics.toChassisSpeeds(modules.logStates());
     }
 
-    @Log.NT
+    @Logged(name = "Desired Chassis Speeds")
     public ChassisSpeeds getDesiredChassisSpeeds() {
         return desiredChassisSpeeds;
     }

@@ -7,24 +7,22 @@
 
 package frc.excalib.mechanisms;
 
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.excalib.control.gains.SysidConfig;
 import frc.excalib.control.motor.controllers.Motor;
 import frc.excalib.control.motor.motor_specs.IdleState;
-import monologue.Logged;
 
 import java.util.function.DoubleSupplier;
-
 import static edu.wpi.first.units.Units.*;
 import static edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import static monologue.Annotations.Log;
 
 /**
  * A class representing a generic Mechanism
  */
-public class Mechanism implements Logged {
+public class Mechanism {
     protected final Motor m_motor;
     protected final MutVoltage m_appliedVoltage = Volts.mutable(0);
     protected final MutAngle m_radians = Radians.mutable(0);
@@ -77,7 +75,7 @@ public class Mechanism implements Logged {
     /**
      * @return the velocity
      */
-    @Log.NT
+    @Logged
     public double getVelocity() {
         return m_motor.getMotorVelocity();
     }
@@ -85,17 +83,17 @@ public class Mechanism implements Logged {
     /**
      * @return the position
      */
-    @Log.NT
+    @Logged
     public double getPosition() {
         return m_motor.getMotorPosition();
     }
 
-    @Log.NT
+    @Logged
     public double getVoltage() {
         return m_motor.getVoltage();
     }
 
-    @Log.NT
+    @Logged
     public double getCurrent() {
         return m_motor.getCurrent();
     }
