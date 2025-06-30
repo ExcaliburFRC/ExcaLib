@@ -28,12 +28,12 @@ public class SwerveConfigurationUtils {
      */
     private static void setupDriveMotors(Motor[] driveMotors, int stallLimit, int freeLimit,
                                               DirectionState directionState, IdleState idleState,
-                                              SwerveModuleType moduleType) {
+                                              SwerveModuleConfiguration moduleType) {
         for (Motor driveMotor : driveMotors) {
             driveMotor.setInverted(directionState);
             driveMotor.setIdleState(idleState);
-            driveMotor.setPositionConversionFactor(moduleType.kPositionConversionFactor);
-            driveMotor.setVelocityConversionFactor(moduleType.kVelocityConversionFactor);
+            driveMotor.setPositionConversionFactor(moduleType.positionConversionFactor());
+            driveMotor.setVelocityConversionFactor(moduleType.velocityConversionFactor());
             driveMotor.setCurrentLimit(stallLimit, freeLimit);
         }
     }
@@ -50,11 +50,11 @@ public class SwerveConfigurationUtils {
      */
     private static void setupSteeringMotors(Motor[] steeringMotors, int stallLimit, int freeLimit,
                                             DirectionState directionState, IdleState idleState,
-                                            SwerveModuleType moduleType) {
+                                            SwerveModuleConfiguration moduleType) {
         for (Motor steeringMotor : steeringMotors) {
             steeringMotor.setInverted(directionState);
             steeringMotor.setIdleState(idleState);
-            steeringMotor.setVelocityConversionFactor(moduleType.kVelocityConversionFactor);
+            steeringMotor.setVelocityConversionFactor(moduleType.steeringVelocityConversionFactor());
             steeringMotor.setCurrentLimit(stallLimit, freeLimit);
         }
     }
@@ -76,7 +76,7 @@ public class SwerveConfigurationUtils {
      */
     public static FlyWheel[] setupDrivingMechanisms(Motor[] driveMotors, int stallLimit, int freeLimit,
                                                     DirectionState directionState, IdleState idleState,
-                                                    SwerveModuleType moduleType, Gains driveModuleGains,
+                                                    SwerveModuleConfiguration moduleType, Gains driveModuleGains,
                                                     double maxModuleAcceleration, double maxModuleJerk) {
         setupDriveMotors(driveMotors, stallLimit, freeLimit, directionState, idleState, moduleType);
 
@@ -107,7 +107,7 @@ public class SwerveConfigurationUtils {
      */
     public static Turret[] setupSteeringMechanisms(Motor[] steeringMotors, int stallLimit, int freeLimit,
                                                    DirectionState directionState, IdleState idleState,
-                                                   SwerveModuleType moduleType, Gains steeringModuleGains,
+                                                   SwerveModuleConfiguration moduleType, Gains steeringModuleGains,
                                                    DoubleSupplier[] steeringModulesPositionSuppliers, double steeringPIDtolerance) {
         setupSteeringMotors(steeringMotors, stallLimit, freeLimit, directionState, idleState, moduleType);
 
