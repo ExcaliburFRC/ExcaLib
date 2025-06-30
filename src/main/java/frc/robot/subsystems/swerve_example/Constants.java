@@ -6,9 +6,9 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.excalib.control.gains.Gains;
 import frc.excalib.control.math.Circle;
-import frc.excalib.swerve.swerve_utils.SwerveModuleType;
+import frc.excalib.swerve.swerve_utils.SwerveModuleConfiguration.SwerveModuleType;
 
-import static frc.excalib.swerve.swerve_utils.SwerveModuleType.MK4i_l3;
+import static frc.excalib.swerve.swerve_utils.SwerveModuleConfiguration.SwerveModuleType.MK4i_l3;
 
 public class Constants {
     public static final String SWERVE_CANBUS = "CTRESwerve";

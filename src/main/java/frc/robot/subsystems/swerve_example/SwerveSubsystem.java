@@ -9,15 +9,14 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.excalib.additional_utilities.AllianceUtils;
-import frc.excalib.commands.ContinuouslyConditionalCommand;
 import frc.excalib.control.imu.IMU;
 import frc.excalib.control.imu.Pigeon;
-import frc.excalib.control.math.Circle;
-import frc.excalib.control.math.Line;
-import frc.excalib.control.math.MathUtils;
 import frc.excalib.control.math.Vector2D;
 import frc.excalib.control.motor.controllers.Motor;
 import frc.excalib.control.motor.controllers.SparkMaxMotor;
@@ -40,7 +39,7 @@ import static edu.wpi.first.math.geometry.Rotation2d.kPi;
 import static frc.robot.subsystems.swerve_example.Constants.*;
 
 public class SwerveSubsystem extends SubsystemBase implements Logged {
-    // An array of the absolute encoders that measure the module's positions
+    // An array of the absolute encoders that measure the modules' positions
     private final CANcoder[] m_cancoders;
 
     // An array of the swerve modules
@@ -49,6 +48,7 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     // The IMU measures the robot's heading
     private final IMU m_gyro;
 
+    // The swerve mechanism
     private final SwerveMechanism m_swerveMechanism;
 
     // PID controllers for the example turnToAngle and pidToPose commands
@@ -60,15 +60,6 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     private Supplier<Translation2d> m_translationSetpoint;
     // finish trigger for the example pidToPoseCommand.
     private final Trigger m_atPoseTrigger;
-
-    // the current obstacle to avoid from
-    private Circle m_obstacleToAvoid;
-    // says if the robot's velocity is in collision range
-    private boolean m_inRange = false;
-    // the target point for obstacle avoidance
-    private Translation2d m_targetPoint;
-    // the last wanted velocity direction
-    private Rotation2d m_lastDirection;
 
     /**
      * A constructor that initialize the swerve subsystem
@@ -112,12 +103,12 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
         m_swerveModules = SwerveConfigurationUtils.setupSwerveModules(
                 SwerveConfigurationUtils.setupDrivingMechanisms(
                         driveMotors, STALL_DRIVING_MODULE_LIMIT, FREE_DRIVING_MODULE_LIMIT,
-                        DirectionState.FORWARD, IdleState.BRAKE, MODULE_TYPE,
+                        DirectionState.FORWARD, IdleState.BRAKE, MODULE_TYPE.getModuleConfiguration(),
                         DRIVING_MODULE_GAINS, MAX_MODULE_ACCELERATION, MAX_MODULE_JERK
                 ),
                 SwerveConfigurationUtils.setupSteeringMechanisms(
                         steeringMotors, STALL_STEERING_MODULE_LIMIT, FREE_STEERING_MODULE_LIMIT,
-                        DirectionState.FORWARD, IdleState.BRAKE, MODULE_TYPE,
+                        DirectionState.FORWARD, IdleState.BRAKE, MODULE_TYPE.getModuleConfiguration(),
                         STEERING_MODULE_GAINS, modulesPositionsSuppliers, STEERING_PID_TOLERANCE
                 ),
                 MODULE_LOCATIONS,
@@ -154,7 +145,7 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
         m_atPoseTrigger = new Trigger(m_xController::atSetpoint).and(m_yController::atSetpoint).and(m_angleController::atSetpoint).debounce(0.1);
 
         // Initialization of the AutoBuilder for pathplanner
-        // initAutoBuilder();
+         initAutoBuilder();
     }
 
     /**
@@ -169,96 +160,6 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
                                 DoubleSupplier omegaRadPerSec,
                                 BooleanSupplier fieldOriented) {
         return m_swerveMechanism.driveCommand(velocityMPS, omegaRadPerSec, fieldOriented, true, this).withName("Drive Command");
-    }
-
-    /**
-     * Drives the robot while avoiding given obstacles.
-     *
-     * @param velocityMPS    Supplier for the desired linear velocity in meters per second.
-     * @param omegaRadPerSec Supplier for the desired angular velocity in radians per second.
-     * @return A command that drives the robot while avoiding given obstacles.
-     */
-    public Command driveWithObstacleAvoidance(Supplier<Vector2D> velocityMPS,
-                                              DoubleSupplier omegaRadPerSec,
-                                              Circle... obstacles) {
-        // TODO: check
-        if (obstacles.length < 1) {
-            return m_swerveMechanism.driveCommand(velocityMPS, omegaRadPerSec, () -> true, true, this);
-        }
-
-        for (Circle obstacle : obstacles) {
-            getObstacleToAvoid(obstacle, velocityMPS.get());
-        }
-
-        return new ParallelCommandGroup(
-                new RunCommand(() -> {
-                    for (Circle obstacle : obstacles) {
-                        getObstacleToAvoid(obstacle, velocityMPS.get());
-                    }
-
-                    // Construct a line from the robot pose, following the direction of motion
-                    Line lineToTargetPose = new Line(
-                            m_swerveMechanism.getPose2D().getTranslation(),
-                            Math.tan(velocityMPS.get().getDirection().getRadians())
-                    );
-                    // Find the farthest intersection point of that line with the obstacle. This is the predicted wanted point beyond the obstacle
-                    m_targetPoint = MathUtils.getFarthestPoint(
-                            m_swerveMechanism.getPose2D().getTranslation(),
-                            m_obstacleToAvoid.getIntersections(lineToTargetPose)
-                    );
-                    // The last wanted velocity direction. enables to change the target point according to controller input.
-                    m_lastDirection = velocityMPS.get().getDirection();
-                }),
-                new ContinuouslyConditionalCommand(
-                        m_swerveMechanism.driveCommand(velocityMPS, omegaRadPerSec, () -> true, true, this), // there is no colliding risk
-                        new ParallelCommandGroup(
-                                new RunCommand(() -> {
-                                    // Rotate the target point around the obstacle center according to the difference between the previous wanted direction and current wanted direction
-                                    m_targetPoint = m_targetPoint.rotateAround(
-                                            m_obstacleToAvoid.getCenter().getTranslation(),
-                                            velocityMPS.get().getDirection().minus(m_lastDirection)
-                                    );
-                                    // Save the current wanted direction
-                                    m_lastDirection = velocityMPS.get().getDirection();
-                                }),
-                                m_swerveMechanism.driveCommand(
-                                        () -> new Vector2D(
-                                                velocityMPS.get().getDistance(),
-                                                // Change the velocity direction in order to avoid collision
-                                                MathUtils.getTargetPose(
-                                                        m_swerveMechanism.getPose2D().getTranslation(),
-                                                        m_targetPoint,
-                                                        m_obstacleToAvoid.getCenter().getTranslation()
-                                                ).getAngle()
-                                        ),
-                                        omegaRadPerSec, () -> true, true, this
-                                )
-                        ).until(
-                                () -> m_swerveMechanism.getPose2D().getTranslation().getAngle().getRadians() > m_targetPoint.getAngle().getRadians() - POSSIBLE_DEVIATION &&
-                                        m_swerveMechanism.getPose2D().getTranslation().getAngle().getRadians() < m_targetPoint.getAngle().getRadians() + POSSIBLE_DEVIATION
-                        ), // Continue until the robot is in a range of ±5.5% in relation to the target point angle
-                        () -> m_swerveMechanism.getPose2D().getTranslation().getDistance(m_obstacleToAvoid.getCenter().getTranslation()) > DISTANCE_TO_AVOID_OBSTACLE && !m_inRange
-                )
-        );
-    }
-
-    private void getObstacleToAvoid(Circle obstacle, Vector2D velocityMPS) {
-        Line[] tangents = obstacle.getTangents(m_swerveMechanism.getPose2D().getTranslation());
-        if (tangents.length == 0) {
-            m_inRange = false; // if the robot is inside the obstacle circle, don't dodge it
-        } else if (tangents.length == 1) {
-            m_inRange = false; // if the robot is on the obstacle circle, don't dodge it
-        } else {
-            // if the robot is outside the obstacle circle, check if the direction of the velocity is between the two intersections
-            double[] directions = new double[]{
-                    MathUtils.getDirectionBySlope(tangents[0].getSlope()),
-                    MathUtils.getDirectionBySlope(tangents[1].getSlope())
-            };
-            m_inRange = velocityMPS.getDirection().getRadians() > Math.min(directions[0], directions[1]) && velocityMPS.getDirection().getRadians() < Math.max(directions[0], directions[1]);
-        }
-        if (m_inRange) {
-            m_obstacleToAvoid = obstacle;
-        }
     }
 
     /**
@@ -356,7 +257,6 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     public void periodic() {
         m_swerveMechanism.periodic();
 
-        // Optionally, you can add new periodic that updates the odometry in RobotContainer to update it in higher frequency
         m_swerveMechanism.updateOdometry();
     }
 }
