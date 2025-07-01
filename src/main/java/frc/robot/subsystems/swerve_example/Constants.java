@@ -8,7 +8,7 @@ import frc.excalib.control.gains.Gains;
 import frc.excalib.control.math.Circle;
 import frc.excalib.swerve.swerve_utils.SwerveModuleConfiguration.SwerveModuleType;
 
-import static frc.excalib.swerve.swerve_utils.SwerveModuleConfiguration.SwerveModuleType.MK4i_l3;
+import static frc.excalib.swerve.swerve_utils.SwerveModuleConfiguration.SwerveModuleType.MK4i_L3;
 
 public class Constants {
     public static final String SWERVE_CANBUS = "CTRESwerve";
@@ -33,7 +33,7 @@ public class Constants {
     public static final Rotation3d GYRO_OFFSET = new Rotation3d();
 
     // Module Specs
-    public static final SwerveModuleType MODULE_TYPE = MK4i_l3;
+    public static final SwerveModuleType MODULE_TYPE = MK4i_L3;
 
     // Driving Mechanism Constraints
     public static final double MAX_MODULE_VELOCITY = 0;
