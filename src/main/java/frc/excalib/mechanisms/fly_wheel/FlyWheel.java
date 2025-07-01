@@ -23,7 +23,7 @@ public class FlyWheel extends Mechanism {
     private final double maxAcceleration;
     private final double maxJerk;
     private final Gains m_gains;
-    private final SimpleMotorFeedforward m_FF_CONTROLLER;
+    private final SimpleMotorFeedforward m_FFController;
 
     /**
      * @param motor           the FlyWheel Motor
@@ -37,7 +37,7 @@ public class FlyWheel extends Mechanism {
         this.maxAcceleration = maxAcceleration;
         this.maxJerk = maxJerk;
         this.m_pidController = new PIDController(m_gains.kp, m_gains.ki, m_gains.kd);
-        this.m_FF_CONTROLLER = new SimpleMotorFeedforward(gains.ks, gains.kv, gains.ka);
+        this.m_FFController = new SimpleMotorFeedforward(gains.ks, gains.kv, gains.ka);
     }
 
     /**
@@ -72,7 +72,7 @@ public class FlyWheel extends Mechanism {
      * @param velocity the velocity to set to the FlyWheel Dynamically
      */
     public void setDynamicVelocity(double velocity) {
-        double ff = m_FF_CONTROLLER.calculate(velocity);
+        double ff = m_FFController.calculate(velocity);
         double pid = m_pidController.calculate(super.m_motor.getMotorVelocity(), velocity);
         super.setVoltage(pid + ff);
     }
