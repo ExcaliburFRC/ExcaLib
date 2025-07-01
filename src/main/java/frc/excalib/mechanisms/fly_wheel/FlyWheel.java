@@ -17,7 +17,8 @@ import java.util.function.DoubleSupplier;
  * A class the represents A FlyWheel Mechanism.
  */
 public class FlyWheel extends Mechanism {
-    private double lastTime, lastVelocity;
+    private final double CYCLE_TIME = 0.02;
+    private double lastVelocity;
     private final PIDController m_pidController;
     private final double maxAcceleration;
     private final double maxJerk;
@@ -48,7 +49,7 @@ public class FlyWheel extends Mechanism {
                 () -> {
                     TrapezoidProfile profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(maxAcceleration, maxJerk));
                     TrapezoidProfile.State state = profile.calculate(
-                            0.02,
+                            CYCLE_TIME,
                             new TrapezoidProfile.State(super.m_motor.getMotorVelocity(), getAcceleration()),
                             new TrapezoidProfile.State(velocitySupplier.getAsDouble(), 0));
                     double ff = m_gains.ks * Math.signum(state.position) +
@@ -82,11 +83,10 @@ public class FlyWheel extends Mechanism {
     private double getAcceleration() {
         double currentTime = Timer.getFPGATimestamp();
         double currentVelocity = super.m_motor.getMotorVelocity();
-        return (currentVelocity - lastVelocity) / (currentTime - lastTime);
+        return (currentVelocity - lastVelocity) / CYCLE_TIME;
     }
 
     public void periodic() {
-        lastTime = Timer.getFPGATimestamp();
         lastVelocity = super.m_motor.getMotorVelocity();
     }
 }
