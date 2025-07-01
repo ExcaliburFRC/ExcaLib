@@ -44,7 +44,6 @@ public class Swerve extends SubsystemBase implements Logged {
     private final Odometry odometry;
     private ChassisSpeeds desiredChassisSpeeds = new ChassisSpeeds();
     private final Trigger finishTrigger;
-    private final Rotation2d PI = new Rotation2d(Math.PI);
     private final InterpolatingDoubleTreeMap velocityLimit = new InterpolatingDoubleTreeMap();
 
     private final SwerveDriveKinematics swerveDriveKinematics;
@@ -102,7 +101,7 @@ public class Swerve extends SubsystemBase implements Logged {
             Vector2D velocity = velocityMPS.get();
             if (fieldOriented.getAsBoolean()) {
                 Rotation2d yaw = getRotation2D().unaryMinus();
-                if (!AllianceUtils.isBlueAlliance()) yaw = yaw.plus(PI);
+                if (!AllianceUtils.isBlueAlliance()) yaw = yaw.plus(Rotation2d.k180deg);
                 return velocity.rotate(yaw);
             }
             return velocity;
@@ -167,7 +166,7 @@ public class Swerve extends SubsystemBase implements Logged {
                             );
                             double distance = getPose2D().getTranslation().getDistance(poseSetpoint.get().getTranslation());
                             vel.setMagnitude(Math.min(vel.getDistance(), velocityLimit.get(distance)));
-                            if (!AllianceUtils.isBlueAlliance()) return vel.rotate(PI);
+                            if (!AllianceUtils.isBlueAlliance()) return vel.rotate(Rotation2d.k180deg);
                             return vel;
                         },
                         () -> angleController.calculate(getRotation2D().getRadians(), poseSetpoint.get().getRotation().getRadians()),
