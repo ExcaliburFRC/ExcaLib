@@ -30,7 +30,7 @@ public class Arm extends Mechanism {
     /**
      * Supplies the current angle of the arm (in radians).
      */
-    public final DoubleSupplier ANGLE_SUPPLIER;
+    public final DoubleSupplier m_angleSupplier;
     /**
      * Velocity feedforward gain.
      */
@@ -46,11 +46,12 @@ public class Arm extends Mechanism {
     /**
      * Soft limit for velocity constraints.
      */
-    public final SoftLimit m_VELOCITY_LIMIT;
+    public final SoftLimit m_velocityLimit;
     /**
      * Continuous soft limit for the arm angle in radians.
      */
-    public final ContinuousSoftLimit m_ANGLE_RAD_LIMIT;
+    public final ContinuousSoftLimit m_angleRadLimit;
+    private final double CYCLE_TIME = 0.02;
 
     /**
      * Constructs an Arm mechanism.
@@ -66,9 +67,9 @@ public class Arm extends Mechanism {
                SoftLimit velocityLimit, ContinuousSoftLimit angleRadLimit,
                Gains gains, Mass mass) {
         super(motor);
-        ANGLE_SUPPLIER = angleSupplier;
-        m_VELOCITY_LIMIT = velocityLimit;
-        m_ANGLE_RAD_LIMIT = angleRadLimit;
+        m_angleSupplier = angleSupplier;
+        m_velocityLimit = velocityLimit;
+        m_angleRadLimit = angleRadLimit;
         m_kg = gains.kg;
         m_kv = gains.kv;
         m_ks = gains.ks;
@@ -79,32 +80,34 @@ public class Arm extends Mechanism {
     /**
      * Creates a command to move the arm to a dynamic angle setpoint using PID and feedforward control.
      *
-     * @param setPointSupplier  supplies the target angle setpoint (radians)
+     * @param setpointSupplier  supplies the target angle setpoint (radians)
      * @param toleranceConsumer consumer that receives whether the arm is within the specified tolerance
      * @param maxOffSet         maximum allowed error for tolerance (radians)
      * @param requirements      subsystems required by this command
      * @return a command that moves the arm to the specified dynamic setpoint
      */
     public Command anglePositionControlCommand(
-            DoubleSupplier setPointSupplier, Consumer<Boolean> toleranceConsumer,
+            DoubleSupplier setpointSupplier, Consumer<Boolean> toleranceConsumer,
             double maxOffSet, SubsystemBase... requirements) {
-        final double dutyCycle = 0.02;
-        return new RunCommand(() -> {
-            double wantedSetpoint = m_ANGLE_RAD_LIMIT.getOptimizedSetpoint(ANGLE_SUPPLIER.getAsDouble(), setPointSupplier.getAsDouble());
-            double error = wantedSetpoint - ANGLE_SUPPLIER.getAsDouble();
-            double velocitySetpoint = error / dutyCycle;
-            velocitySetpoint = m_VELOCITY_LIMIT.limit(velocitySetpoint);
-            double phyOutput =
-                    m_ks * Math.signum(velocitySetpoint) +
-                            m_kg * m_mass.getCenterOfMass().getX();
-            double pid = m_PIDController.calculate(
-                    ANGLE_SUPPLIER.getAsDouble(),
-                    wantedSetpoint
-            );
-            double output = phyOutput + pid;
-            super.setVoltage(m_VELOCITY_LIMIT.limit(output));
-            toleranceConsumer.accept(Math.abs(error) < maxOffSet);
-        }, requirements);
+        return new RunCommand(
+                () -> {
+                    double wantedSetpoint = m_angleRadLimit.getOptimizedSetpoint(
+                            m_angleSupplier.getAsDouble(), setpointSupplier.getAsDouble()
+                    );
+                    double error = wantedSetpoint - m_angleSupplier.getAsDouble();
+                    double velocitySetpoint = error / CYCLE_TIME;
+
+                    velocitySetpoint = m_velocityLimit.limit(velocitySetpoint);
+
+                    double phyOutput = m_ks * Math.signum(velocitySetpoint) + m_kg * m_mass.getCenterOfMass().getX();
+                    double pid = m_PIDController.calculate(m_angleSupplier.getAsDouble(), wantedSetpoint);
+
+                    double output = phyOutput + pid;
+
+                    super.setVoltage(m_velocityLimit.limit(output));
+                    toleranceConsumer.accept(Math.abs(error) < maxOffSet);
+                }, requirements
+        );
     }
 
     /**
