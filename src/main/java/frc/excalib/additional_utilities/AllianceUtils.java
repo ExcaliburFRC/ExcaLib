@@ -19,8 +19,11 @@ import static edu.wpi.first.wpilibj.DriverStation.Alliance.Blue;
  * for functionality that depends on the robot alliance.
  */
 public class AllianceUtils {
-    public static final double FIELD_LENGTH_METERS = 17.548;
-    public static final double FIELD_WIDTH_METERS = 8.052;
+    public static Field field = Field.REEFSCAPE_WELDED;
+
+    public static void setField(Field newField) {
+        field = newField;
+    }
 
     /**
      * @return whether the robot is on the blue alliance
@@ -50,8 +53,8 @@ public class AllianceUtils {
         return isBlueAlliance() ?
                 pose :
                 new Pose2d(
-                        FIELD_LENGTH_METERS - pose.getX(),
-                        FIELD_WIDTH_METERS - pose.getY(),
+                        field.m_lengthMeters - pose.getX(),
+                        field.m_widthMeters - pose.getY(),
                         pose.getRotation().minus(Rotation2d.kPi)
                 );
     }
@@ -66,7 +69,7 @@ public class AllianceUtils {
         return isBlueAlliance() ?
                 pose :
                 new Pose2d(
-                        FIELD_LENGTH_METERS - pose.getX(),
+                        field.m_lengthMeters - pose.getX(),
                         pose.getY(),
                         Rotation2d.kPi.minus(pose.getRotation())
                 );
@@ -130,6 +133,18 @@ public class AllianceUtils {
          */
         public Pose2d getMirrored() {
             return mirrorToAlliancePose(m_pose);
+        }
+    }
+
+    public enum Field {
+        REEFSCAPE_WELDED(17.548, 8.052),
+        REEFSCAPE_ANDYMARK(17.548, 8.042);
+
+        public final double m_lengthMeters, m_widthMeters;
+
+        Field(double lengthMeters, double widthMeters) {
+            this.m_lengthMeters = lengthMeters;
+            this.m_widthMeters = widthMeters;
         }
     }
 }
