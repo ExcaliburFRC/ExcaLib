@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.github.ExcaliburFRC'
-version = 'v0.1.0'
+version = 'pre-release'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -119,6 +119,8 @@ jar {
 
     from(sourceSets.main.output) {
         include 'frc/excalib'
+        exclude 'frc/excalib/swerve'
+        exclude 'frc/excalib/slam'
     }
 
     manifest edu.wpi.first.gradlerio.GradleRIOPlugin.javaManifest(ROBOT_MAIN_CLASS)

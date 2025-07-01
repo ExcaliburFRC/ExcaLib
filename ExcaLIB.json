@@ -1,18 +1,18 @@
 {
-  "fileName": "ExcaLIB.json",
-  "name": "ExcaLIB",
-  "version": "v0.1.0",
+  "fileName": "ExcaLib.json",
+  "name": "ExcaLib",
+  "version": "pre-release",
   "uuid": "51f3941b-7c54-4eb2-a531-580ac6f3a675",
   "frcYear": "2025",
   "mavenUrls": [
     "https://jitpack.io"
   ],
-  "jsonUrl": "https://raw.githubusercontent.com/ExcaliburFRC/ExcaLIB/v0.1.0/ExcaLIB.json",
+  "jsonUrl": "https://raw.githubusercontent.com/ExcaliburFRC/ExcaLib/pre-release/ExcaLib.json",
   "javaDependencies": [
     {
       "groupId": "com.github.ExcaliburFRC",
-      "artifactId": "ExcaLIB",
-      "version": "v0.1.0"
+      "artifactId": "ExcaLib",
+      "version": "pre-release"
     }
   ],
   "jniDependencies": [],
