@@ -352,66 +352,6 @@ public class Swerve extends SubsystemBase implements Logged {
                 : selectedModule.angleSysIdQuas(dir, this, sysidConfig);
     }
 
-    public static Swerve configureSwerve(Pose2d initialPose) {
-        return new Swerve(
-                new ModulesHolder(
-                        new SwerveModule(
-                                new TalonFXMotor(FRONT_LEFT_DRIVE_ID, SWERVE_CANBUS),
-                                new SparkMaxMotor(FRONT_LEFT_ROTATION_ID, kBrushless),
-                                SWERVE_DRIVE_MODULE_GAINS,
-                                SWERVE_ROTATION_MODULE_GAINS,
-                                PID_TOLERANCE,
-                                FRONT_LEFT_TRANSLATION,
-                                () -> FRONT_LEFT_ABS_ENCODER.getAbsolutePosition().getValueAsDouble() * 2 * Math.PI,
-                                MAX_MODULE_VEL,
-                                VELOCITY_CONVERSION_FACTOR,
-                                POSITION_CONVERSION_FACTOR,
-                                ROTATION_VELOCITY_CONVERSION_FACTOR
-                        ),
-                        new SwerveModule(
-                                new TalonFXMotor(FRONT_RIGHT_DRIVE_ID, SWERVE_CANBUS),
-                                new SparkMaxMotor(FRONT_RIGHT_ROTATION_ID, kBrushless),
-                                SWERVE_DRIVE_MODULE_GAINS,
-                                SWERVE_ROTATION_MODULE_GAINS,
-                                PID_TOLERANCE,
-                                FRONT_RIGHT_TRANSLATION,
-                                () -> FRONT_RIGHT_ABS_ENCODER.getAbsolutePosition().getValueAsDouble() * 2 * Math.PI,
-                                MAX_MODULE_VEL,
-                                VELOCITY_CONVERSION_FACTOR,
-                                POSITION_CONVERSION_FACTOR,
-                                ROTATION_VELOCITY_CONVERSION_FACTOR
-                        ),
-                        new SwerveModule(
-                                new TalonFXMotor(BACK_LEFT_DRIVE_ID, SWERVE_CANBUS),
-                                new SparkMaxMotor(BACK_LEFT_ROTATION_ID, kBrushless),
-                                SWERVE_DRIVE_MODULE_GAINS,
-                                SWERVE_ROTATION_MODULE_GAINS,
-                                PID_TOLERANCE,
-                                BACK_LEFT_TRANSLATION,
-                                () -> BACK_LEFT_ABS_ENCODER.getAbsolutePosition().getValueAsDouble() * 2 * Math.PI,
-                                MAX_MODULE_VEL,
-                                VELOCITY_CONVERSION_FACTOR,
-                                POSITION_CONVERSION_FACTOR,
-                                ROTATION_VELOCITY_CONVERSION_FACTOR
-                        ),
-                        new SwerveModule(
-                                new TalonFXMotor(BACK_RIGHT_DRIVE_ID, SWERVE_CANBUS),
-                                new SparkMaxMotor(BACK_RIGHT_ROTATION_ID, kBrushless),
-                                SWERVE_DRIVE_MODULE_GAINS,
-                                SWERVE_ROTATION_MODULE_GAINS,
-                                PID_TOLERANCE,
-                                BACK_RIGHT_TRANSLATION,
-                                () -> BACK_RIGHT_ABS_ENCODER.getAbsolutePosition().getValueAsDouble() * 2 * Math.PI,
-                                MAX_MODULE_VEL,
-                                VELOCITY_CONVERSION_FACTOR,
-                                POSITION_CONVERSION_FACTOR,
-                                ROTATION_VELOCITY_CONVERSION_FACTOR
-                        )),
-                GYRO,
-                initialPose
-        );
-    }
-
     @Override
     public void periodic() {
         modules.periodic();
