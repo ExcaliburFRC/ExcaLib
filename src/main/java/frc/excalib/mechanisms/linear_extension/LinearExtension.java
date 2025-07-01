@@ -46,6 +46,7 @@ public class LinearExtension extends Mechanism {
      * Motion profile constraints (max velocity and acceleration).
      */
     private final TrapezoidProfile.Constraints m_constraints;
+    private final double CYCLE_TIME = 0.02;
 
     /**
      * Constructs a LinearExtension mechanism.
@@ -79,28 +80,30 @@ public class LinearExtension extends Mechanism {
      * @return a command that extends the mechanism to the specified setpoint
      */
     public Command extendCommand(DoubleSupplier lengthSetpoint, SubsystemBase... requirements) {
-        return new RunCommand(() -> {
-            double lengthLimitedSetpoint = m_heightLimit.limit(lengthSetpoint.getAsDouble());
-            TrapezoidProfile profile = new TrapezoidProfile(m_constraints);
-            TrapezoidProfile.State state =
-                    profile.calculate(
-                            0.02,
-                            new TrapezoidProfile.State(
-                                    m_positionSupplier.getAsDouble(),
-                                    super.m_motor.getMotorVelocity()),
+        return new RunCommand(
+                () -> {
+                    double lengthLimitedSetpoint = m_heightLimit.limit(lengthSetpoint.getAsDouble());
+                    TrapezoidProfile profile = new TrapezoidProfile(m_constraints);
+
+                    TrapezoidProfile.State state = profile.calculate(
+                            CYCLE_TIME,
+                            new TrapezoidProfile.State(m_positionSupplier.getAsDouble(), super.m_motor.getMotorVelocity()),
                             new TrapezoidProfile.State(lengthLimitedSetpoint, 0)
                     );
-            double pidValue = m_PIDController.calculate(m_positionSupplier.getAsDouble(), state.position);
-            double ff =
-                    (Math.abs(m_positionSupplier.getAsDouble() - lengthLimitedSetpoint) > m_tolerance) ?
 
-                            m_gains.ks * Math.signum(state.velocity) +
-                                    m_gains.kv * state.velocity +
-                                    m_gains.kg * Math.sin(m_angleSupplier.getAsDouble()) :
+                    double pidValue = m_PIDController.calculate(m_positionSupplier.getAsDouble(), state.position);
+                    double ff;
 
-                            m_gains.kg * Math.sin(m_angleSupplier.getAsDouble());
-            double output = ff + pidValue;
-            setVoltage(output);
-        }, requirements);
+                    if (Math.abs(m_positionSupplier.getAsDouble() - lengthLimitedSetpoint) > m_tolerance) {
+                        ff = m_gains.ks * Math.signum(state.velocity) + m_gains.kv * state.velocity +
+                                m_gains.kg * Math.sin(m_angleSupplier.getAsDouble());
+                    } else {
+                        ff = m_gains.kg * Math.sin(m_angleSupplier.getAsDouble());
+                    }
+
+                    double output = ff + pidValue;
+                    setVoltage(output);
+                }, requirements
+        );
     }
 }
