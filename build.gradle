@@ -115,7 +115,7 @@ jar {
     archiveVersion.set(project.version)
     archiveClassifier.set("")
 
-    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+//    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
 
     from(sourceSets.main.output) {
         include 'frc/excalib'
