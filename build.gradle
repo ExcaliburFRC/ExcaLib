@@ -118,23 +118,26 @@ jar {
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
 
     from(sourceSets.main.output) {
-        exclude 'frc/robot/**'
-        exclude 'frc/excalib/swerve/**'
-        exclude 'frc/excalib/slam/**'
+        include 'frc/excalib'
+        exclude 'frc/excalib/swerve'
+        exclude 'frc/excalib/slam'
     }
+
+    manifest edu.wpi.first.gradlerio.GradleRIOPlugin.javaManifest(ROBOT_MAIN_CLASS)
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 
 // Configure jar and deploy tasks
-    deployArtifact.jarTask = jar
-    wpi.java.configureExecutableTasks(jar)
-    wpi.java.configureTestTasks(test)
+deployArtifact.jarTask = jar
+wpi.java.configureExecutableTasks(jar)
+wpi.java.configureTestTasks(test)
 
 // Configure string concat to always inline compile
-    tasks.withType(JavaCompile) {
-        options.compilerArgs.add '-XDstringConcat=inline'
-    }
+tasks.withType(JavaCompile) {
+    options.compilerArgs.add '-XDstringConcat=inline'
+}
 
-    artifacts {
-        archives jar
-    }
+artifacts {
+    archives jar
+}
