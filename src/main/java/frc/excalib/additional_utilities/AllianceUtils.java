@@ -138,7 +138,7 @@ public class AllianceUtils {
 
     public enum Field {
         REEFSCAPE_WELDED(17.548, 8.052),
-        REEFSCAPE_ANDYMARK(17.548, 8.052);
+        REEFSCAPE_ANDYMARK(17.548, 8.042);
 
         public final double m_lengthMeters, m_widthMeters;
 
