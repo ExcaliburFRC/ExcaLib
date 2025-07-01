@@ -42,7 +42,7 @@ public final class Turret extends Mechanism {
 
     /**
      * @param wantedPosition a Rotation2d dynamic setpoint
-     * @return a Command that moves the turret tho the given setpoint
+     * @return a Command that moves the turret to the given setpoint
      */
     public Command setPositionCommand(Supplier<Rotation2d> wantedPosition, SubsystemBase... requirements) {
         return new RunCommand(() -> setPosition(wantedPosition.get()), requirements);
@@ -54,11 +54,8 @@ public final class Turret extends Mechanism {
      * @param wantedPosition the wanted position of the turret.
      */
     public void setPosition(Rotation2d wantedPosition) {
-        double smartSetpoint = m_rotationLimit.getOptimizedSetpoint(
-                getTurretPosition().getRadians(), wantedPosition.getRadians()
-        );
+        double smartSetpoint = m_rotationLimit.getOptimizedSetpoint(getTurretPosition().getRadians(), wantedPosition.getRadians());
         double pid = m_anglePIDcontroller.calculate(m_positionSupplier.getAsDouble(), smartSetpoint);
-//        double ff =m_angleFFcontroller.getKs() * Math.signum(pid);
         super.setVoltage(pid);
     }
 
@@ -67,5 +64,6 @@ public final class Turret extends Mechanism {
      */
     public Rotation2d getTurretPosition() {
         return new Rotation2d(m_positionSupplier.getAsDouble());
+
     }
 }

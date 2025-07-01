@@ -3,6 +3,8 @@ package frc.excalib.control.math;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 
+import java.awt.*;
+
 /**
  * Represents a circle in a 2D plane, defined by its center and radius.
  */
@@ -21,6 +23,17 @@ public class Circle {
      */
     public Circle(double a, double b, double r) {
         this.center = new Translation2d(a, b);
+        this.r = r;
+    }
+
+    /**
+     * Constructs a Circle object with a Point and radius.
+     *
+     *  @param center the coordinates of the circle's center
+     * @param r The radius of the circle.
+     */
+    public Circle(Point center, double r){
+        this.center = new Translation2d(center.x, center.y);
         this.r = r;
     }
 

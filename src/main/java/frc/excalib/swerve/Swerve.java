@@ -44,7 +44,6 @@ public class Swerve extends SubsystemBase implements Logged {
     private final Odometry odometry;
     private ChassisSpeeds desiredChassisSpeeds = new ChassisSpeeds();
     private final Trigger finishTrigger;
-    private final Rotation2d PI = new Rotation2d(Math.PI);
     private final InterpolatingDoubleTreeMap velocityLimit = new InterpolatingDoubleTreeMap();
 
     private final SwerveDriveKinematics swerveDriveKinematics;
@@ -100,19 +99,16 @@ public class Swerve extends SubsystemBase implements Logged {
         // Precompute values to avoid redundant calculations
         Supplier<Vector2D> adjustedVelocitySupplier = () -> {
             Vector2D velocity = velocityMPS.get();
-//            Vector2D velocity = getSmartTranslationalVelocitySetPoint(getVelocity(), velocityMPS.get());
             if (fieldOriented.getAsBoolean()) {
                 Rotation2d yaw = getRotation2D().unaryMinus();
-                if (!AllianceUtils.isBlueAlliance()) yaw = yaw.plus(PI);
+                if (!AllianceUtils.isBlueAlliance()) yaw = yaw.plus(Rotation2d.k180deg);
                 return velocity.rotate(yaw);
             }
             return velocity;
         };
 
-        Command driveCommand = new ParallelCommandGroup(modules.setVelocitiesCommand(
-                adjustedVelocitySupplier,
-                omegaRadPerSec
-        ),
+        Command driveCommand = new ParallelCommandGroup(
+                modules.setVelocitiesCommand(adjustedVelocitySupplier, omegaRadPerSec),
                 new RunCommand(
                         () -> desiredChassisSpeeds = new ChassisSpeeds(
                                 adjustedVelocitySupplier.get().getX(),
@@ -170,7 +166,7 @@ public class Swerve extends SubsystemBase implements Logged {
                             );
                             double distance = getPose2D().getTranslation().getDistance(poseSetpoint.get().getTranslation());
                             vel.setMagnitude(Math.min(vel.getDistance(), velocityLimit.get(distance)));
-                            if (!AllianceUtils.isBlueAlliance()) return vel.rotate(PI);
+                            if (!AllianceUtils.isBlueAlliance()) return vel.rotate(Rotation2d.k180deg);
                             return vel;
                         },
                         () -> angleController.calculate(getRotation2D().getRadians(), poseSetpoint.get().getRotation().getRadians()),
@@ -354,66 +350,6 @@ public class Swerve extends SubsystemBase implements Logged {
         return dynamic ?
                 selectedModule.angleSysIdDynamic(dir, this, sysidConfig)
                 : selectedModule.angleSysIdQuas(dir, this, sysidConfig);
-    }
-
-    public static Swerve configureSwerve(Pose2d initialPose) {
-        return new Swerve(
-                new ModulesHolder(
-                        new SwerveModule(
-                                new TalonFXMotor(FRONT_LEFT_DRIVE_ID, SWERVE_CANBUS),
-                                new SparkMaxMotor(FRONT_LEFT_ROTATION_ID, kBrushless),
-                                SWERVE_DRIVE_MODULE_GAINS,
-                                SWERVE_ROTATION_MODULE_GAINS,
-                                PID_TOLERANCE,
-                                FRONT_LEFT_TRANSLATION,
-                                () -> FRONT_LEFT_ABS_ENCODER.getAbsolutePosition().getValueAsDouble() * 2 * Math.PI,
-                                MAX_MODULE_VEL,
-                                VELOCITY_CONVERSION_FACTOR,
-                                POSITION_CONVERSION_FACTOR,
-                                ROTATION_VELOCITY_CONVERSION_FACTOR
-                        ),
-                        new SwerveModule(
-                                new TalonFXMotor(FRONT_RIGHT_DRIVE_ID, SWERVE_CANBUS),
-                                new SparkMaxMotor(FRONT_RIGHT_ROTATION_ID, kBrushless),
-                                SWERVE_DRIVE_MODULE_GAINS,
-                                SWERVE_ROTATION_MODULE_GAINS,
-                                PID_TOLERANCE,
-                                FRONT_RIGHT_TRANSLATION,
-                                () -> FRONT_RIGHT_ABS_ENCODER.getAbsolutePosition().getValueAsDouble() * 2 * Math.PI,
-                                MAX_MODULE_VEL,
-                                VELOCITY_CONVERSION_FACTOR,
-                                POSITION_CONVERSION_FACTOR,
-                                ROTATION_VELOCITY_CONVERSION_FACTOR
-                        ),
-                        new SwerveModule(
-                                new TalonFXMotor(BACK_LEFT_DRIVE_ID, SWERVE_CANBUS),
-                                new SparkMaxMotor(BACK_LEFT_ROTATION_ID, kBrushless),
-                                SWERVE_DRIVE_MODULE_GAINS,
-                                SWERVE_ROTATION_MODULE_GAINS,
-                                PID_TOLERANCE,
-                                BACK_LEFT_TRANSLATION,
-                                () -> BACK_LEFT_ABS_ENCODER.getAbsolutePosition().getValueAsDouble() * 2 * Math.PI,
-                                MAX_MODULE_VEL,
-                                VELOCITY_CONVERSION_FACTOR,
-                                POSITION_CONVERSION_FACTOR,
-                                ROTATION_VELOCITY_CONVERSION_FACTOR
-                        ),
-                        new SwerveModule(
-                                new TalonFXMotor(BACK_RIGHT_DRIVE_ID, SWERVE_CANBUS),
-                                new SparkMaxMotor(BACK_RIGHT_ROTATION_ID, kBrushless),
-                                SWERVE_DRIVE_MODULE_GAINS,
-                                SWERVE_ROTATION_MODULE_GAINS,
-                                PID_TOLERANCE,
-                                BACK_RIGHT_TRANSLATION,
-                                () -> BACK_RIGHT_ABS_ENCODER.getAbsolutePosition().getValueAsDouble() * 2 * Math.PI,
-                                MAX_MODULE_VEL,
-                                VELOCITY_CONVERSION_FACTOR,
-                                POSITION_CONVERSION_FACTOR,
-                                ROTATION_VELOCITY_CONVERSION_FACTOR
-                        )),
-                GYRO,
-                initialPose
-        );
     }
 
     @Override

@@ -25,7 +25,7 @@ public class SwerveConstants {
 
     public static final double PID_TOLERANCE = 0;
 
-    public static final double TRACK_WIDTH = 0; // Meters
+    public static final double TRACK_WIDTH = 0; // meters
     public static final Translation2d FRONT_LEFT_TRANSLATION = new Translation2d(TRACK_WIDTH / 2, TRACK_WIDTH / 2);
     public static final Translation2d FRONT_RIGHT_TRANSLATION = new Translation2d(TRACK_WIDTH / 2, -TRACK_WIDTH / 2);
     public static final Translation2d BACK_LEFT_TRANSLATION = new Translation2d(-TRACK_WIDTH / 2, TRACK_WIDTH / 2);

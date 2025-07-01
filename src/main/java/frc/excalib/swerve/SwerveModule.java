@@ -84,6 +84,7 @@ public class SwerveModule implements Logged {
         m_moduleAnglePlus90 = m_MODULE_LOCATION.getAngle().plus(new Rotation2d(Math.PI / 2));
 
         m_swerveModulePosition = new SwerveModulePosition(m_driveWheel.getPosition(), m_turret.getTurretPosition());
+
     }
 
     /**
@@ -135,6 +136,7 @@ public class SwerveModule implements Logged {
     public boolean isOptimizable(Vector2D moduleVelocitySetPoint) {
         Rotation2d setPointDirection = moduleVelocitySetPoint.getDirection();
         Rotation2d currentDirection = m_turret.getTurretPosition();
+
         double deltaDirection = Math.cos(setPointDirection.minus(currentDirection).getRadians());
 
         // If the dot product is negative, reversing the wheel direction may be beneficial
@@ -166,6 +168,7 @@ public class SwerveModule implements Logged {
 
                     if (speed < 0.1) {
                         return m_turret.getTurretPosition();
+
                     }
 
                     boolean optimize = isOptimizable(velocity);
@@ -223,6 +226,7 @@ public class SwerveModule implements Logged {
         if (speed < 0.1) {
             speed = 0.0;
             direction = m_turret.getTurretPosition();
+
         }
 
         boolean optimize = isOptimizable(velocity);
