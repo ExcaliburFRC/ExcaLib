@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.excalib.control.gains.Gains;
+import frc.excalib.control.limits.ContinuousSoftLimit;
 import frc.excalib.control.limits.SoftLimit;
 import frc.excalib.control.math.physics.Mass;
 import frc.excalib.control.motor.controllers.Motor;
@@ -29,7 +30,7 @@ public class Arm extends Mechanism {
     /**
      * Supplies the current angle of the arm (in radians).
      */
-    public final DoubleSupplier ANGLE_SUPPLIER;
+    public final DoubleSupplier m_angleSupplier;
     /**
      * Velocity feedforward gain.
      */
@@ -45,7 +46,12 @@ public class Arm extends Mechanism {
     /**
      * Soft limit for velocity constraints.
      */
-    public final SoftLimit m_VELOCITY_LIMIT;
+    public final SoftLimit m_velocityLimit;
+    /**
+     * Continuous soft limit for the arm angle in radians.
+     */
+    public final ContinuousSoftLimit m_angleRadLimit;
+    private final double CYCLE_TIME = 0.02;
 
     /**
      * Constructs an Arm mechanism.
@@ -53,14 +59,17 @@ public class Arm extends Mechanism {
      * @param motor         the motor controller for the arm
      * @param angleSupplier supplies the current arm angle (radians)
      * @param velocityLimit soft limit for velocity
+     * @param angleRadLimit continuous soft limit for angle in radians
      * @param gains         PID and feedforward gains
      * @param mass          mass properties of the arm
      */
     public Arm(Motor motor, DoubleSupplier angleSupplier,
-               SoftLimit velocityLimit, Gains gains, Mass mass) {
+               SoftLimit velocityLimit, ContinuousSoftLimit angleRadLimit,
+               Gains gains, Mass mass) {
         super(motor);
-        ANGLE_SUPPLIER = angleSupplier;
-        m_VELOCITY_LIMIT = velocityLimit;
+        m_angleSupplier = angleSupplier;
+        m_velocityLimit = velocityLimit;
+        m_angleRadLimit = angleRadLimit;
         m_kg = gains.kg;
         m_kv = gains.kv;
         m_ks = gains.ks;
@@ -80,23 +89,25 @@ public class Arm extends Mechanism {
     public Command anglePositionControlCommand(
             DoubleSupplier setpointSupplier, Consumer<Boolean> toleranceConsumer,
             double maxOffSet, SubsystemBase... requirements) {
-        final double dutyCycle = 0.02;
         return new RunCommand(
                 () -> {
-                    double error = setpointSupplier.getAsDouble() - ANGLE_SUPPLIER.getAsDouble();
-                    double velocitySetpoint = error / dutyCycle;
-                    velocitySetpoint = m_VELOCITY_LIMIT.limit(velocitySetpoint);
-                    double phyOutput =
-                            m_ks * Math.signum(velocitySetpoint) +
-                                    m_kg * m_mass.getCenterOfMass().getX();
-                    double pid = m_PIDController.calculate(
-                            ANGLE_SUPPLIER.getAsDouble(),
-                            setpointSupplier.getAsDouble()
+                    double wantedSetpoint = m_angleRadLimit.getOptimizedSetpoint(
+                            m_angleSupplier.getAsDouble(), setpointSupplier.getAsDouble()
                     );
+                    double error = wantedSetpoint - m_angleSupplier.getAsDouble();
+                    double velocitySetpoint = error / CYCLE_TIME;
+
+                    velocitySetpoint = m_velocityLimit.limit(velocitySetpoint);
+
+                    double phyOutput = m_ks * Math.signum(velocitySetpoint) + m_kg * m_mass.getCenterOfMass().getX();
+                    double pid = m_PIDController.calculate(m_angleSupplier.getAsDouble(), wantedSetpoint);
+
                     double output = phyOutput + pid;
-                    super.setVoltage(m_VELOCITY_LIMIT.limit(output));
+
+                    super.setVoltage(m_velocityLimit.limit(output));
                     toleranceConsumer.accept(Math.abs(error) < maxOffSet);
-                }, requirements);
+                }, requirements
+        );
     }
 
     /**
