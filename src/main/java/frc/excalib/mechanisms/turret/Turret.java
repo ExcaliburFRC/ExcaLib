@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 public final class Turret extends Mechanism {
     private final ContinuousSoftLimit m_rotationLimit;
     private final PIDController m_anglePIDcontroller;
-    private final DoubleSupplier m_POSITION_SUPPLIER;
+    private final DoubleSupplier m_positionSupplier;
 
     /**
      * @param motor            the turrets motor
@@ -37,7 +37,7 @@ public final class Turret extends Mechanism {
         m_anglePIDcontroller.setTolerance(PIDtolerance);
         m_anglePIDcontroller.enableContinuousInput(-Math.PI, Math.PI);
 
-        m_POSITION_SUPPLIER = positionSupplier;
+        m_positionSupplier = positionSupplier;
     }
 
     /**
@@ -57,7 +57,7 @@ public final class Turret extends Mechanism {
         double smartSetpoint = m_rotationLimit.getOptimizedSetpoint(
                 getTurretPosition().getRadians(), wantedPosition.getRadians()
         );
-        double pid = m_anglePIDcontroller.calculate(m_POSITION_SUPPLIER.getAsDouble(), smartSetpoint);
+        double pid = m_anglePIDcontroller.calculate(m_positionSupplier.getAsDouble(), smartSetpoint);
 //        double ff =m_angleFFcontroller.getKs() * Math.signum(pid);
         super.setVoltage(pid);
     }
@@ -66,6 +66,6 @@ public final class Turret extends Mechanism {
      * @return get the position if the turret
      */
     public Rotation2d getTurretPosition() {
-        return new Rotation2d(m_POSITION_SUPPLIER.getAsDouble());
+        return new Rotation2d(m_positionSupplier.getAsDouble());
     }
 }
