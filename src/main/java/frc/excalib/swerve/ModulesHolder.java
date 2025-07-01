@@ -1,5 +1,8 @@
 package frc.excalib.swerve;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -23,7 +26,6 @@ public class ModulesHolder implements Logged {
     private final SwerveDriveKinematics m_swerveDriveKinematics;
 
     private final SwerveModulePosition[] m_modulePositions;
-
     /**
      * A constructor that initialize the ModulesHolder.
      *
@@ -32,11 +34,7 @@ public class ModulesHolder implements Logged {
      * @param backLeft   A SwerveModule represents the back-left module.
      * @param backRight  A SwerveModule represents the back-right module.
      */
-    public ModulesHolder(
-            SwerveModule frontLeft,
-            SwerveModule frontRight,
-            SwerveModule backLeft,
-            SwerveModule backRight) {
+    public ModulesHolder(SwerveModule frontLeft, SwerveModule frontRight, SwerveModule backLeft, SwerveModule backRight) {
         this.m_frontLeft = frontLeft;
         this.m_frontRight = frontRight;
         this.m_backLeft = backLeft;
@@ -130,26 +128,10 @@ public class ModulesHolder implements Logged {
      */
     public Command setVelocitiesCommand(Supplier<Vector2D> translationalVel, DoubleSupplier omega) {
         return new ParallelCommandGroup(
-                m_frontLeft.setVelocityCommand(
-                        translationalVel,
-                        omega,
-                        () -> calcVelocityRatioLimit(translationalVel.get(), omega.getAsDouble())
-                ),
-                m_frontRight.setVelocityCommand(
-                        translationalVel,
-                        omega,
-                        () -> calcVelocityRatioLimit(translationalVel.get(), omega.getAsDouble())
-                ),
-                m_backLeft.setVelocityCommand(
-                        translationalVel,
-                        omega,
-                        () -> calcVelocityRatioLimit(translationalVel.get(), omega.getAsDouble())
-                ),
-                m_backRight.setVelocityCommand(
-                        translationalVel,
-                        omega,
-                        () -> calcVelocityRatioLimit(translationalVel.get(), omega.getAsDouble())
-                )
+                m_frontLeft.setVelocityCommand(translationalVel, omega, () -> calcVelocityRatioLimit(translationalVel.get(), omega.getAsDouble())),
+                m_frontRight.setVelocityCommand(translationalVel, omega, () -> calcVelocityRatioLimit(translationalVel.get(), omega.getAsDouble())),
+                m_backLeft.setVelocityCommand(translationalVel, omega, () -> calcVelocityRatioLimit(translationalVel.get(), omega.getAsDouble())),
+                m_backRight.setVelocityCommand(translationalVel, omega, () -> calcVelocityRatioLimit(translationalVel.get(), omega.getAsDouble()))
         );
     }
 
@@ -185,8 +167,8 @@ public class ModulesHolder implements Logged {
         };
     }
 
-    @Log.NT(key = "SetPoints")
-    public SwerveModuleState[] logSetPointStates() {
+    @Log.NT(key = "setPoints")
+    public SwerveModuleState[] logSetpointStates() {
         return new SwerveModuleState[]{
                 m_frontLeft.logSetpointState(),
                 m_frontRight.logSetpointState(),

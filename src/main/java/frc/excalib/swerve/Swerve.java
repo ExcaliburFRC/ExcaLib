@@ -100,7 +100,6 @@ public class Swerve extends SubsystemBase implements Logged {
         // Precompute values to avoid redundant calculations
         Supplier<Vector2D> adjustedVelocitySupplier = () -> {
             Vector2D velocity = velocityMPS.get();
-//            Vector2D velocity = getSmartTranslationalVelocitySetPoint(getVelocity(), velocityMPS.get());
             if (fieldOriented.getAsBoolean()) {
                 Rotation2d yaw = getRotation2D().unaryMinus();
                 if (!AllianceUtils.isBlueAlliance()) yaw = yaw.plus(PI);
@@ -109,10 +108,8 @@ public class Swerve extends SubsystemBase implements Logged {
             return velocity;
         };
 
-        Command driveCommand = new ParallelCommandGroup(modules.setVelocitiesCommand(
-                adjustedVelocitySupplier,
-                omegaRadPerSec
-        ),
+        Command driveCommand = new ParallelCommandGroup(
+                modules.setVelocitiesCommand(adjustedVelocitySupplier, omegaRadPerSec),
                 new RunCommand(
                         () -> desiredChassisSpeeds = new ChassisSpeeds(
                                 adjustedVelocitySupplier.get().getX(),
