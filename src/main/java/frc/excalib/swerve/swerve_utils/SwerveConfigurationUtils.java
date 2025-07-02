@@ -136,10 +136,7 @@ public class SwerveConfigurationUtils {
         SwerveModule[] swerveModules = new SwerveModule[4];
 
         for (int i = 0; i < swerveModules.length; i++) {
-            swerveModules[i] = new SwerveModule(
-                    driveWheels[i], steeringMechanisms[i],
-                    moduleLocations[i], maxModuleVelocity
-            );
+            swerveModules[i] = new SwerveModule(driveWheels[i], steeringMechanisms[i], moduleLocations[i], maxModuleVelocity);
         }
 
         return swerveModules;
@@ -160,10 +157,7 @@ public class SwerveConfigurationUtils {
         SwerveModule[] swerveModules = new SwerveModule[4];
 
         for (int i = 0; i < swerveModules.length; i++) {
-            swerveModules[i] = new SwerveModule(
-                    driveWheels[i], steeringMechanisms[i],
-                    moduleLocations[i], maxModulesVelocities[i]
-            );
+            swerveModules[i] = new SwerveModule(driveWheels[i], steeringMechanisms[i], moduleLocations[i], maxModulesVelocities[i]);
         }
 
         return swerveModules;

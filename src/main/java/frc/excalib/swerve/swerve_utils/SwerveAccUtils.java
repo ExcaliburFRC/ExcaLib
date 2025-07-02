@@ -24,12 +24,12 @@ public class SwerveAccUtils {
      * A function to get the translational velocity setpoint.
      *
      * @param currentVel       the current velocity of the swerve
-     * @param velocitySetPoint wanted velocity setpoint
+     * @param velocitySetpoint wanted velocity setpoint
      * @param allLimits        whether to use all limits or only the skid limit
      * @return translational velocity setpoint with acceleration limits
      */
-    public static Vector2D getSmartTranslationalVelocitySetpoint(Vector2D currentVel, Vector2D velocitySetPoint, boolean allLimits) {
-        Vector2D deltaVelocity = velocitySetPoint.plus(
+    public static Vector2D getSmartTranslationalVelocitySetpoint(Vector2D currentVel, Vector2D velocitySetpoint, boolean allLimits) {
+        Vector2D deltaVelocity = velocitySetpoint.plus(
                 currentVel.mul(-1));
         Vector2D actualDeltaVelocity = applyAccelerationLimits(currentVel, deltaVelocity, allLimits);
         return currentVel.plus(actualDeltaVelocity);

@@ -167,12 +167,7 @@ public class Mechanism implements Logged {
      * @param isLinear true if the mechanism is linear, false if it is angular
      * @return a Command that performs a quasistatic test
      */
-    public Command sysIdQuasistatic(Direction direction,
-                                    SubsystemBase subsystem,
-                                    DoubleSupplier positionSupplier,
-                                    SysidConfig config,
-                                    boolean isLinear
-    ) {
+    public Command sysIdQuasistatic(Direction direction, SubsystemBase subsystem, DoubleSupplier positionSupplier, SysidConfig config, boolean isLinear) {
         if (isLinear) return getLinearSysIdRoutine(subsystem, positionSupplier, config).quasistatic(direction);
         return getAngularSysIdRoutine(subsystem, positionSupplier, config).quasistatic(direction);
     }
@@ -187,13 +182,9 @@ public class Mechanism implements Logged {
      * @param isLinear true if the mechanism is linear, false if it is angular
      * @return a Command that performs a dynamic test
      */
-    public Command sysIdDynamic(Direction direction,
-                                SubsystemBase subsystem,
-                                DoubleSupplier positionSupplier,
-                                SysidConfig config,
-                                boolean isLinear) {
+    public Command sysIdDynamic(Direction direction, SubsystemBase subsystem, DoubleSupplier positionSupplier, SysidConfig config, boolean isLinear) {
         if (isLinear)
             return getLinearSysIdRoutine(subsystem, positionSupplier, config).dynamic(direction);
-        return getAngularSysIdRoutine(subsystem, positionSupplier, config).dynamic(direction).withName("quadForward");
+        return getAngularSysIdRoutine(subsystem, positionSupplier, config).dynamic(direction);
     }
 }

@@ -29,21 +29,17 @@ public class ModulesHolder implements Logged {
      * @param backLeft   A SwerveModule represents the back-left module.
      * @param backRight  A SwerveModule represents the back-right module.
      */
-    public ModulesHolder(
-            SwerveModule frontLeft,
-            SwerveModule frontRight,
-            SwerveModule backLeft,
-            SwerveModule backRight) {
-        this.m_frontLeft = frontLeft;
-        this.m_frontRight = frontRight;
-        this.m_backLeft = backLeft;
-        this.m_backRight = backRight;
+    public ModulesHolder(SwerveModule frontLeft, SwerveModule frontRight, SwerveModule backLeft, SwerveModule backRight) {
+        m_frontLeft = frontLeft;
+        m_frontRight = frontRight;
+        m_backLeft = backLeft;
+        m_backRight = backRight;
 
         this.m_swerveDriveKinematics = new SwerveDriveKinematics(
-                frontLeft.m_MODULE_LOCATION,
-                frontRight.m_MODULE_LOCATION,
-                backLeft.m_MODULE_LOCATION,
-                backRight.m_MODULE_LOCATION
+                frontLeft.m_moduleLocation,
+                frontRight.m_moduleLocation,
+                backLeft.m_moduleLocation,
+                backRight.m_moduleLocation
         );
 
         m_modulePositions = new SwerveModulePosition[]{
@@ -159,7 +155,7 @@ public class ModulesHolder implements Logged {
                 + m_backRight.getVelocity().getY();
 
         // Compute the average velocity
-        return new Vector2D(totalX * 0.25, totalY * 0.25);
+        return new Vector2D(totalX / 4, totalY /4);
     }
 
     /**

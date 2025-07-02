@@ -259,9 +259,7 @@ public record SwerveModuleConfiguration(double velocityConversionFactor,
          * @param positionConversionFactor         The position conversion factor of the module
          * @param steeringVelocityConversionFactor The rotational velocity conversion factor of the module
          */
-        SwerveModuleType(double velocityConversionFactor,
-                         double positionConversionFactor,
-                         double steeringVelocityConversionFactor) {
+        SwerveModuleType(double velocityConversionFactor, double positionConversionFactor, double steeringVelocityConversionFactor) {
             m_moduleConfiguration = new SwerveModuleConfiguration(velocityConversionFactor, positionConversionFactor, steeringVelocityConversionFactor);
         }
 

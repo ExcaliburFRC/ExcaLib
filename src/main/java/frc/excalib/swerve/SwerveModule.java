@@ -32,11 +32,13 @@ public class SwerveModule implements Logged {
 
     private final SwerveModulePosition m_swerveModulePosition;
 
-    public final Translation2d m_MODULE_LOCATION;
-    private final Rotation2d m_moduleAnglePlus90;
+    public final Translation2d m_moduleLocation;
+    private final Rotation2d m_perpendicularModuleAngle;
     private final double kMaxVel;
 
-    private final Vector2D m_setPoint = new Vector2D(0, 0);
+    private final double kVelocityMinTolernce = 0.05;
+
+    private final Vector2D m_setpoint = new Vector2D(0, 0);
 
     /**
      * A constructor for the SwerveModule.
@@ -46,18 +48,18 @@ public class SwerveModule implements Logged {
      * @param moduleLocation    the location of the module relative to the center of the robot.
      * @param maxVel            the max velocity of the module.
      */
-    public SwerveModule(FlyWheel drivingMechanism, Turret steeringMechanism,
-                        Translation2d moduleLocation, double maxVel) {
+    public SwerveModule(FlyWheel drivingMechanism, Turret steeringMechanism, Translation2d moduleLocation, double maxVel) {
         m_drivingMechanism = drivingMechanism;
-
         m_steeringMechanism = steeringMechanism;
 
-        m_MODULE_LOCATION = moduleLocation;
+        m_moduleLocation = moduleLocation;
+        m_perpendicularModuleAngle = m_moduleLocation.getAngle().plus(Rotation2d.kCCW_Pi_2);
+        m_swerveModulePosition = new SwerveModulePosition(
+                m_drivingMechanism.logPosition(),
+                m_steeringMechanism.getPosition()
+        );
+
         kMaxVel = maxVel;
-
-        m_moduleAnglePlus90 = m_MODULE_LOCATION.getAngle().plus(new Rotation2d(Math.PI / 2));
-
-        m_swerveModulePosition = new SwerveModulePosition(m_drivingMechanism.logPosition(), m_steeringMechanism.getPosition());
     }
 
     /**
@@ -68,17 +70,12 @@ public class SwerveModule implements Logged {
      * @return the ratio limit of this module.
      */
     double getVelocityRatioLimit(Vector2D translationVelocity, double omegaRadPerSec) {
-        Vector2D rotationVector = new Vector2D(
-                omegaRadPerSec,
-                m_moduleAnglePlus90
-        );
+        Vector2D rotationVector = new Vector2D(omegaRadPerSec, m_perpendicularModuleAngle);
         Vector2D sigmaVel = translationVelocity.plus(rotationVector);
         double sigmaVelDistance = sigmaVel.getDistance();
 
-        // Avoid division by zero
-        if (sigmaVelDistance == 0) {
+        if (sigmaVelDistance == 0)
             return 0;
-        }
         return kMaxVel / sigmaVelDistance;
     }
 
@@ -91,10 +88,7 @@ public class SwerveModule implements Logged {
      * @return a Vector2D represents the sigma velocity.
      */
     Vector2D getSigmaVelocity(Vector2D translationVelocity, double omegaRadPerSec, double velocityRatioLimit) {
-        Vector2D rotationVector = new Vector2D(
-                omegaRadPerSec,
-                m_moduleAnglePlus90
-        );
+        Vector2D rotationVector = new Vector2D(omegaRadPerSec, m_perpendicularModuleAngle);
         Vector2D sigmaVel = translationVelocity.plus(rotationVector);
         sigmaVel = sigmaVel.mul(velocityRatioLimit);
         return sigmaVel;
@@ -107,9 +101,9 @@ public class SwerveModule implements Logged {
      * @return a boolean says if the module should be optimized.
      */
     boolean isOptimizable(Vector2D moduleVelocitySetPoint) {
-        Rotation2d setPointDirection = moduleVelocitySetPoint.getDirection();
+        Rotation2d setpointDirection = moduleVelocitySetPoint.getDirection();
         Rotation2d currentDirection = m_steeringMechanism.getPosition();
-        double deltaDirection = Math.cos(setPointDirection.minus(currentDirection).getRadians());
+        double deltaDirection = Math.cos(setpointDirection.minus(currentDirection).getRadians());
 
         // If the dot product is negative, reversing the wheel direction may be beneficial
         return deltaDirection < 0;
@@ -124,33 +118,49 @@ public class SwerveModule implements Logged {
      */
     public Command setVelocityCommand(Supplier<Vector2D> moduleVelocity) {
         return new ParallelCommandGroup(
-                m_drivingMechanism.setDynamicVelocityCommand(() -> {
+                applyDriveSpeedCommand(moduleVelocity),
+                applySteeringAngleCommand(moduleVelocity),
+                updateSetpointCommand(moduleVelocity)
+        );
+    }
+
+    private Command updateSetpointCommand(Supplier<Vector2D> moduleVelocity) {
+        return new RunCommand(
+                () -> {
+                    m_setpoint.setY(moduleVelocity.get().getY());
+                    m_setpoint.setX(moduleVelocity.get().getX());
+                }
+        );
+    }
+
+    private Command applySteeringAngleCommand(Supplier<Vector2D> moduleVelocity) {
+        return m_steeringMechanism.setPositionCommand(() -> {
+            Vector2D velocity = moduleVelocity.get();
+            double speed = velocity.getDistance();
+
+            if (speed < kVelocityMinTolernce) {
+                return m_steeringMechanism.getPosition();
+            }
+
+            boolean optimize = isOptimizable(velocity);
+            Rotation2d direction = velocity.getDirection();
+            return optimize ? direction.rotateBy(kPi) : direction;
+        });
+    }
+
+    private Command applyDriveSpeedCommand(Supplier<Vector2D> moduleVelocity) {
+        return m_drivingMechanism.setDynamicVelocityCommand(
+                () -> {
                     Vector2D velocity = moduleVelocity.get();
                     double speed = velocity.getDistance();
 
-                    if (speed < 0.1) {
+                    if (speed < kVelocityMinTolernce) {
                         speed = 0;
                     }
 
                     boolean optimize = isOptimizable(velocity);
                     return optimize ? -speed : speed;
-                }),
-                m_steeringMechanism.setPositionCommand(() -> {
-                    Vector2D velocity = moduleVelocity.get();
-                    double speed = velocity.getDistance();
-
-                    if (speed < 0.1) {
-                        return m_steeringMechanism.getPosition();
-                    }
-
-                    boolean optimize = isOptimizable(velocity);
-                    Rotation2d direction = velocity.getDirection();
-                    return optimize ? direction.rotateBy(kPi) : direction;
-                }),
-                new RunCommand(() -> {
-                    m_setPoint.setY(moduleVelocity.get().getY());
-                    m_setPoint.setX(moduleVelocity.get().getX());
-                })
+                }
         );
     }
 
@@ -162,16 +172,10 @@ public class SwerveModule implements Logged {
      * @param velocityRatioLimit the needed ratio limit.
      * @return a Command that sets the module velocity to the wanted velocity.
      */
-    public Command setVelocityCommand(
-            Supplier<Vector2D> translationVelocity,
-            DoubleSupplier omegaRadPerSec,
-            DoubleSupplier velocityRatioLimit) {
-
+    public Command setVelocityCommand(Supplier<Vector2D> translationVelocity, DoubleSupplier omegaRadPerSec, DoubleSupplier velocityRatioLimit) {
         return setVelocityCommand(
                 () -> getSigmaVelocity(
-                        translationVelocity.get(),
-                        omegaRadPerSec.getAsDouble(),
-                        velocityRatioLimit.getAsDouble()
+                        translationVelocity.get(), omegaRadPerSec.getAsDouble(), velocityRatioLimit.getAsDouble()
                 )
         );
     }
@@ -186,7 +190,7 @@ public class SwerveModule implements Logged {
         double speed = velocity.getDistance();
         Rotation2d direction = velocity.getDirection();
 
-        if (speed < 0.1) {
+        if (speed < kVelocityMinTolernce) {
             speed = 0.0;
             direction = m_steeringMechanism.getPosition();
         }
@@ -208,10 +212,7 @@ public class SwerveModule implements Logged {
      * @return A Command that sets the idle state of the module's motors to coast.
      */
     public Command coastCommand() {
-        return new ParallelCommandGroup(
-                m_drivingMechanism.coastCommand(),
-                m_steeringMechanism.coastCommand()
-        );
+        return new ParallelCommandGroup(m_drivingMechanism.coastCommand(), m_steeringMechanism.coastCommand());
     }
 
     /**
@@ -237,7 +238,7 @@ public class SwerveModule implements Logged {
      *
      * @return the module position.
      */
-    @Log.NT(key = "Module Position")
+    @Log.NT(key = "module position")
     public SwerveModulePosition getModulePosition() {
         return m_swerveModulePosition;
     }
@@ -247,7 +248,7 @@ public class SwerveModule implements Logged {
      *
      * @return the current state of the module.
      */
-    @Log.NT(key = "Module State")
+    @Log.NT(key = "module state")
     public SwerveModuleState getState() {
         Vector2D velocity = getVelocity();
         return new SwerveModuleState(velocity.getDistance(), velocity.getDirection());
@@ -258,9 +259,9 @@ public class SwerveModule implements Logged {
      *
      * @return the wanted state of the module.
      */
-    @Log.NT(key = "Module Desired State")
+    @Log.NT(key = "module desired state")
     public SwerveModuleState getDesiredState() {
-        return new SwerveModuleState(m_setPoint.getDistance(), m_setPoint.getDirection());
+        return new SwerveModuleState(m_setpoint.getDistance(), m_setpoint.getDirection());
     }
 
     /**
@@ -272,7 +273,7 @@ public class SwerveModule implements Logged {
      * @return the dynamic sysId command
      */
     public Command driveSysIdDynamic(SysIdRoutine.Direction direction, SubsystemBase swerve, SysidConfig sysidConfig) {
-        return m_drivingMechanism.sysIdDynamic(direction, swerve, m_drivingMechanism::logPosition, sysidConfig, false);
+        return m_drivingMechanism.sysIdDynamic(direction, swerve, m_drivingMechanism::logPosition, sysidConfig, true);
     }
 
     /**
@@ -284,7 +285,7 @@ public class SwerveModule implements Logged {
      * @return the quasistatic sysId command
      */
     public Command driveSysIdQuas(SysIdRoutine.Direction direction, SubsystemBase swerve, SysidConfig sysidConfig) {
-        return m_drivingMechanism.sysIdQuasistatic(direction, swerve, m_drivingMechanism::logPosition, sysidConfig, false);
+        return m_drivingMechanism.sysIdQuasistatic(direction, swerve, m_drivingMechanism::logPosition, sysidConfig, true);
     }
 
     /**

@@ -321,7 +321,7 @@ public class SwerveMechanism implements Logged {
         } else {
             if (dynamic)
                 return selectedModule.angleSysIdDynamic(direction, swerveObject, sysidConfig);
-            return selectedModule.angleSysIdDynamic(direction, swerveObject, sysidConfig);
+            return selectedModule.angleSysIdQuas(direction, swerveObject, sysidConfig);
         }
     }
 
