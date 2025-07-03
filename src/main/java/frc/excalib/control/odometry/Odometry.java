@@ -1,4 +1,4 @@
-package frc.excalib.slam.mapper.odometry;
+package frc.excalib.control.odometry;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
