@@ -1,25 +1,26 @@
 package frc.excalib.swerve;
 
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.excalib.control.math.Vector2D;
-import monologue.Logged;
 
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-public class ModulesHolder implements Logged {
-    public final SwerveModule m_frontLeft;
-    public final SwerveModule m_frontRight;
-    public final SwerveModule m_backLeft;
-    public final SwerveModule m_backRight;
+@Logged
+public class ModulesHolder {
+    final SwerveModule m_frontLeft;
+    final SwerveModule m_frontRight;
+    final SwerveModule m_backLeft;
+    final SwerveModule m_backRight;
 
     private final SwerveDriveKinematics m_swerveDriveKinematics;
 
-    private final SwerveModulePosition[] m_modulePositions;
+    private final SwerveModulePosition[] m_modulesPositions;
 
     /**
      * A constructor that initialize the ModulesHolder.
@@ -35,14 +36,14 @@ public class ModulesHolder implements Logged {
         m_backLeft = backLeft;
         m_backRight = backRight;
 
-        this.m_swerveDriveKinematics = new SwerveDriveKinematics(
+        m_swerveDriveKinematics = new SwerveDriveKinematics(
                 frontLeft.m_moduleLocation,
                 frontRight.m_moduleLocation,
                 backLeft.m_moduleLocation,
                 backRight.m_moduleLocation
         );
 
-        m_modulePositions = new SwerveModulePosition[]{
+        m_modulesPositions = new SwerveModulePosition[]{
                 m_frontLeft.getModulePosition(),
                 m_frontRight.getModulePosition(),
                 m_backLeft.getModulePosition(),
@@ -163,11 +164,11 @@ public class ModulesHolder implements Logged {
      *
      * @return the linear velocity of the robot.
      */
-    double getLinearVelocity() {
+    Vector2D getLinearVelocity() {
         return new Vector2D(
                 m_swerveDriveKinematics.toChassisSpeeds(getStates()).vxMetersPerSecond,
                 m_swerveDriveKinematics.toChassisSpeeds(getStates()).vyMetersPerSecond
-        ).getDistance();
+        );
     }
 
     /**
@@ -222,7 +223,7 @@ public class ModulesHolder implements Logged {
      * @return An array of SwerveModulePosition representing the positions of the modules.
      */
     SwerveModulePosition[] getModulesPositions() {
-        return m_modulePositions;
+        return m_modulesPositions;
     }
 
     /**
