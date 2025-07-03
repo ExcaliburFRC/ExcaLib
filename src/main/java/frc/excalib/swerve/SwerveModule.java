@@ -1,6 +1,7 @@
 package frc.excalib.swerve;
 
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.NotLogged;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -32,10 +33,14 @@ public class SwerveModule {
 
     private final SwerveModulePosition m_swerveModulePosition;
 
-    public final Translation2d m_moduleLocation;
+    @NotLogged
+    final Translation2d m_moduleLocation;
+    @NotLogged
     private final Rotation2d m_perpendicularModuleAngle;
+    @NotLogged
     private final double kMaxVel;
 
+    @NotLogged
     private final double kVelocityMinTolerance = 0.05;
 
     private final Vector2D m_setpoint = new Vector2D(0, 0);

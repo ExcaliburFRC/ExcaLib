@@ -1,6 +1,7 @@
 package frc.excalib.swerve;
 
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.NotLogged;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -18,6 +19,7 @@ public class ModulesHolder {
     final SwerveModule m_backLeft;
     final SwerveModule m_backRight;
 
+    @NotLogged
     private final SwerveDriveKinematics m_swerveDriveKinematics;
 
     private final SwerveModulePosition[] m_modulesPositions;
