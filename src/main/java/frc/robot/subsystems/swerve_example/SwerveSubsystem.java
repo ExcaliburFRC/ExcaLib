@@ -4,6 +4,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -28,7 +29,6 @@ import frc.excalib.swerve.SwerveMechanism;
 import frc.excalib.swerve.SwerveModule;
 import frc.excalib.swerve.swerve_utils.SwerveConfigurationUtils;
 import frc.excalib.swerve.swerve_utils.SwerveSpecs;
-import monologue.Logged;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -38,7 +38,8 @@ import static com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless;
 import static edu.wpi.first.math.geometry.Rotation2d.kPi;
 import static frc.robot.subsystems.swerve_example.Constants.*;
 
-public class SwerveSubsystem extends SubsystemBase implements Logged {
+@Logged
+public class SwerveSubsystem extends SubsystemBase {
     // An array of the absolute encoders that measure the modules' positions
     private final CANcoder[] m_cancoders;
 
@@ -46,7 +47,7 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     private final SwerveModule[] m_swerveModules;
 
     // The IMU measures the robot's heading
-    private final IMU m_gyro;
+    private final IMU m_imu;
 
     // The swerve mechanism
     private final SwerveMechanism m_swerveMechanism;
@@ -116,7 +117,8 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
         );
 
         // Initialization of the IMU
-        m_gyro = new Pigeon(GYRO_ID, SWERVE_CANBUS, GYRO_OFFSET);
+        m_imu = new Pigeon(GYRO_ID, SWERVE_CANBUS, GYRO_OFFSET);
+        m_imu.resetIMU();
 
         // Initialization of the swerve mechanism
         m_swerveMechanism = new SwerveMechanism(
@@ -128,7 +130,7 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
                         m_swerveModules[3]
                 ),
                 new SwerveSpecs(MAX_VELOCITY, MAX_OMEGA_RAD_PER_SEC, MAX_ACC, MAX_FRONT_ACC, MAX_SIDE_ACC, MAX_FORWARD_ACC),
-                m_gyro,
+                m_imu,
                 INITIAL_SWERVE_POSITION
         );
 
@@ -145,7 +147,7 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
         m_atPoseTrigger = new Trigger(m_xController::atSetpoint).and(m_yController::atSetpoint).and(m_angleController::atSetpoint).debounce(0.1);
 
         // Initialization of the AutoBuilder for pathplanner
-         initAutoBuilder();
+//         initAutoBuilder();
     }
 
     /**
