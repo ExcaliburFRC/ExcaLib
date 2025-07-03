@@ -1,5 +1,6 @@
 package frc.excalib.swerve;
 
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -13,8 +14,6 @@ import frc.excalib.control.gains.SysidConfig;
 import frc.excalib.control.math.Vector2D;
 import frc.excalib.mechanisms.fly_wheel.FlyWheel;
 import frc.excalib.mechanisms.turret.Turret;
-import monologue.Annotations.Log;
-import monologue.Logged;
 
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -26,7 +25,8 @@ import static edu.wpi.first.math.geometry.Rotation2d.kPi;
  *
  * @author Yoav Cohen & Itay Keller.
  */
-public class SwerveModule implements Logged {
+@Logged
+public class SwerveModule {
     private final FlyWheel m_drivingMechanism;
     private final Turret m_steeringMechanism;
 
@@ -36,7 +36,7 @@ public class SwerveModule implements Logged {
     private final Rotation2d m_perpendicularModuleAngle;
     private final double kMaxVel;
 
-    private final double kVelocityMinTolernce = 0.05;
+    private final double kVelocityMinTolerance = 0.05;
 
     private final Vector2D m_setpoint = new Vector2D(0, 0);
 
@@ -54,6 +54,7 @@ public class SwerveModule implements Logged {
 
         m_moduleLocation = moduleLocation;
         m_perpendicularModuleAngle = m_moduleLocation.getAngle().plus(Rotation2d.kCCW_Pi_2);
+
         m_swerveModulePosition = new SwerveModulePosition(
                 m_drivingMechanism.logPosition(),
                 m_steeringMechanism.getPosition()
@@ -116,7 +117,7 @@ public class SwerveModule implements Logged {
      * @param moduleVelocity a supplier of Vector2D represents the wanted velocity.
      * @return a Command that sets the module velocity to the wanted velocity.
      */
-    public Command setVelocityCommand(Supplier<Vector2D> moduleVelocity) {
+    Command setVelocityCommand(Supplier<Vector2D> moduleVelocity) {
         return new ParallelCommandGroup(
                 applyDriveSpeedCommand(moduleVelocity),
                 applySteeringAngleCommand(moduleVelocity),
@@ -138,7 +139,7 @@ public class SwerveModule implements Logged {
             Vector2D velocity = moduleVelocity.get();
             double speed = velocity.getDistance();
 
-            if (speed < kVelocityMinTolernce) {
+            if (speed < kVelocityMinTolerance) {
                 return m_steeringMechanism.getPosition();
             }
 
@@ -154,7 +155,7 @@ public class SwerveModule implements Logged {
                     Vector2D velocity = moduleVelocity.get();
                     double speed = velocity.getDistance();
 
-                    if (speed < kVelocityMinTolernce) {
+                    if (speed < kVelocityMinTolerance) {
                         speed = 0;
                     }
 
@@ -168,11 +169,11 @@ public class SwerveModule implements Logged {
      * A method that sets the velocity of the module using the overall robot wanted velocity.
      *
      * @param translationVelocity the wanted robot linear velocity.
-     * @param omegaRadPerSec the wanted robot angular velocity.
-     * @param velocityRatioLimit the needed ratio limit.
+     * @param omegaRadPerSec      the wanted robot angular velocity.
+     * @param velocityRatioLimit  the needed ratio limit.
      * @return a Command that sets the module velocity to the wanted velocity.
      */
-    public Command setVelocityCommand(Supplier<Vector2D> translationVelocity, DoubleSupplier omegaRadPerSec, DoubleSupplier velocityRatioLimit) {
+    Command setVelocityCommand(Supplier<Vector2D> translationVelocity, DoubleSupplier omegaRadPerSec, DoubleSupplier velocityRatioLimit) {
         return setVelocityCommand(
                 () -> getSigmaVelocity(
                         translationVelocity.get(), omegaRadPerSec.getAsDouble(), velocityRatioLimit.getAsDouble()
@@ -190,7 +191,7 @@ public class SwerveModule implements Logged {
         double speed = velocity.getDistance();
         Rotation2d direction = velocity.getDirection();
 
-        if (speed < kVelocityMinTolernce) {
+        if (speed < kVelocityMinTolerance) {
             speed = 0.0;
             direction = m_steeringMechanism.getPosition();
         }
@@ -220,6 +221,7 @@ public class SwerveModule implements Logged {
      *
      * @return a Vector2D represents the module velocity.
      */
+    @Logged(name = "module velocity")
     public Vector2D getVelocity() {
         return new Vector2D(m_drivingMechanism.getVelocity(), getPosition());
     }
@@ -229,6 +231,7 @@ public class SwerveModule implements Logged {
      *
      * @return the angle of the module as Rotation2d.
      */
+    @Logged(name = "module angle")
     public Rotation2d getPosition() {
         return m_steeringMechanism.getPosition();
     }
@@ -238,7 +241,6 @@ public class SwerveModule implements Logged {
      *
      * @return the module position.
      */
-    @Log.NT(key = "module position")
     public SwerveModulePosition getModulePosition() {
         return m_swerveModulePosition;
     }
@@ -248,7 +250,7 @@ public class SwerveModule implements Logged {
      *
      * @return the current state of the module.
      */
-    @Log.NT(key = "module state")
+    @Logged(name = "module state")
     public SwerveModuleState getState() {
         Vector2D velocity = getVelocity();
         return new SwerveModuleState(velocity.getDistance(), velocity.getDirection());
@@ -259,7 +261,7 @@ public class SwerveModule implements Logged {
      *
      * @return the wanted state of the module.
      */
-    @Log.NT(key = "module desired state")
+    @Logged(name = "module desired state")
     public SwerveModuleState getDesiredState() {
         return new SwerveModuleState(m_setpoint.getDistance(), m_setpoint.getDirection());
     }
@@ -267,20 +269,20 @@ public class SwerveModule implements Logged {
     /**
      * A command for dynamic sysId to the driving mechanism of the module
      *
-     * @param direction the wanted direction of the driving mechanism
-     * @param swerve the swerve subsystem (for requirements)
+     * @param direction   the wanted direction of the driving mechanism
+     * @param swerveSubsystem      the swerve subsystem (for requirements)
      * @param sysidConfig the configuration for the sysId
      * @return the dynamic sysId command
      */
-    public Command driveSysIdDynamic(SysIdRoutine.Direction direction, SubsystemBase swerve, SysidConfig sysidConfig) {
-        return m_drivingMechanism.sysIdDynamic(direction, swerve, m_drivingMechanism::logPosition, sysidConfig, true);
+    public Command driveSysIdDynamic(SysIdRoutine.Direction direction, SubsystemBase swerveSubsystem, SysidConfig sysidConfig) {
+        return m_drivingMechanism.sysIdDynamic(direction, swerveSubsystem, m_drivingMechanism::logPosition, sysidConfig, true);
     }
 
     /**
      * A command for quasistatic sysId to the driving mechanism of the module
      *
-     * @param direction the wanted direction of the driving mechanism
-     * @param swerve the swerve subsystem (for requirements)
+     * @param direction   the wanted direction of the driving mechanism
+     * @param swerve      the swerve subsystem (for requirements)
      * @param sysidConfig the configuration for the sysId
      * @return the quasistatic sysId command
      */
@@ -291,8 +293,8 @@ public class SwerveModule implements Logged {
     /**
      * A command for dynamic sysId to the steering mechanism of the module
      *
-     * @param direction the wanted direction of the steering mechanism
-     * @param swerve the swerve subsystem (for requirements)
+     * @param direction   the wanted direction of the steering mechanism
+     * @param swerve      the swerve subsystem (for requirements)
      * @param sysidConfig the configuration for the sysId
      * @return the dynamic sysId command
      */
@@ -303,8 +305,8 @@ public class SwerveModule implements Logged {
     /**
      * A command for quasistatic sysId to the steering mechanism of the module
      *
-     * @param direction the wanted direction of the steering mechanism
-     * @param swerve the swerve subsystem (for requirements)
+     * @param direction   the wanted direction of the steering mechanism
+     * @param swerve      the swerve subsystem (for requirements)
      * @param sysidConfig the configuration for the sysId
      * @return the quasistatic sysId command
      */
