@@ -1,5 +1,6 @@
 package frc.excalib.swerve;
 
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -12,12 +13,12 @@ import frc.excalib.additional_utilities.AllianceUtils;
 import frc.excalib.control.gains.SysidConfig;
 import frc.excalib.control.imu.IMU;
 import frc.excalib.control.math.Vector2D;
-import frc.excalib.slam.mapper.odometry.Odometry;
-import frc.excalib.slam.mapper.odometry.VisionMeasurement;
+import frc.excalib.control.odometry.Odometry;
+import frc.excalib.control.odometry.VisionMeasurement;
 import frc.excalib.swerve.swerve_utils.SwerveAccUtils;
+import frc.excalib.swerve.swerve_utils.SwerveModuleOption;
 import frc.excalib.swerve.swerve_utils.SwerveSpecs;
 import frc.excalib.swerve.swerve_utils.SysIdRoutineOption;
-import monologue.Logged;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -25,13 +26,12 @@ import java.util.function.Supplier;
 
 import static edu.wpi.first.math.geometry.Rotation2d.kPi;
 import static frc.excalib.swerve.swerve_utils.SwerveAccUtils.getSmartTranslationalVelocitySetpoint;
-import static frc.excalib.swerve.swerve_utils.SweveModuleOption.*;
-import static monologue.Annotations.Log;
 
 /**
  * A class representing a swerve subsystem.
  */
-public class SwerveMechanism implements Logged {
+@Logged
+public class SwerveMechanism {
     private final ModulesHolder m_modules;
     private final IMU m_imu;
     private final SwerveSpecs m_specs;
@@ -48,9 +48,7 @@ public class SwerveMechanism implements Logged {
     public SwerveMechanism(ModulesHolder modules, SwerveSpecs swerveSpecs, IMU imu, Pose2d initialPosition) {
         m_modules = modules;
         m_specs = swerveSpecs;
-
         m_imu = imu;
-        m_imu.resetIMU();
 
         m_odometry = new Odometry(
                 modules.getSwerveDriveKinematics(),
@@ -75,7 +73,7 @@ public class SwerveMechanism implements Logged {
     public Command driveCommand(Supplier<Vector2D> velocityMPS, DoubleSupplier omegaRadPerSec,
                                 BooleanSupplier fieldOriented, boolean withAccLimits, SubsystemBase... requirements) {
 
-        Supplier<Vector2D> adjustedVelocitySupplier = () -> adjustVectorByOriantation(
+        Supplier<Vector2D> adjustedVelocitySupplier = () -> adjustVectorByOrientation(
                 getSmartTranslationalVelocitySetpoint(getSigmaRobotVelocity(), velocityMPS.get(), withAccLimits),
                 fieldOriented
         );
@@ -91,7 +89,7 @@ public class SwerveMechanism implements Logged {
                 )
         );
 
-        driveCommand.setName("sweve drive command");
+        driveCommand.setName("swerve drive command");
         driveCommand.addRequirements(requirements);
         return driveCommand;
     }
@@ -124,6 +122,13 @@ public class SwerveMechanism implements Logged {
     }
 
     /**
+     * @return A command that resets the IMU angle.
+     */
+    public Command resetAngleCommand() {
+        return new InstantCommand(m_imu::resetIMU).ignoringDisable(true);
+    }
+
+    /**
      * Updates the robot's odometry.
      *
      * @param visionMeasurements Optionally, you can add a vision measurement to the odometry.
@@ -137,13 +142,6 @@ public class SwerveMechanism implements Logged {
     }
 
     /**
-     * @return A command that resets the IMU angle.
-     */
-    public Command resetAngleCommand() {
-        return new InstantCommand(m_imu::resetIMU).ignoringDisable(true);
-    }
-
-    /**
      * A method that resets the odometry.
      *
      * @param newPose the wanted new Pose2d of the robot.
@@ -153,15 +151,16 @@ public class SwerveMechanism implements Logged {
     }
 
     /**
-     * A method that adjustes the vector if driving field oriented
+     * A method that adjusts the vector if driving field oriented
      *
-     * @param velocity current velocty vector
+     * @param velocity      current velocity vector
      * @param fieldOriented is driving field oriented
      * @return the fixed vector
      */
-    private Vector2D adjustVectorByOriantation(Vector2D velocity, BooleanSupplier fieldOriented) {
+    private Vector2D adjustVectorByOrientation(Vector2D velocity, BooleanSupplier fieldOriented) {
+        Rotation2d yaw;
         if (fieldOriented.getAsBoolean()) {
-            Rotation2d yaw = getRotation2D().unaryMinus();
+            yaw = getRotation2D().unaryMinus();
             if (AllianceUtils.isRedAlliance()) yaw = yaw.plus(kPi);
             return velocity.rotate(yaw);
         }
@@ -173,7 +172,7 @@ public class SwerveMechanism implements Logged {
      *
      * @return The current heading of the robot.
      */
-    @Log.NT(key = "robot yaw angle")
+    @Logged(name = "robot yaw angle")
     public Rotation2d getRotation2D() {
         return getPose2D().getRotation();
     }
@@ -183,7 +182,7 @@ public class SwerveMechanism implements Logged {
      *
      * @return The current pose of the robot.
      */
-    @Log.NT(key = "robot pose")
+    @Logged(name = "robot pose")
     public Pose2d getPose2D() {
         return m_odometry.getRobotPose();
     }
@@ -193,7 +192,7 @@ public class SwerveMechanism implements Logged {
      *
      * @return The robot's sigma velocity as a Vector2D.
      */
-    @Log.NT(key = "robot sigma velocity")
+    @Logged(name = "robot sigma velocity")
     public Vector2D getSigmaRobotVelocity() {
         return m_modules.getSigmaVelocity();
     }
@@ -203,8 +202,8 @@ public class SwerveMechanism implements Logged {
      *
      * @return The robot's linear velocity.
      */
-    @Log.NT(key = "robot linear velocity")
-    public double getLinearRobotVelocity() {
+    @Logged(name = "robot linear velocity")
+    public Vector2D getLinearRobotVelocity() {
         return m_modules.getLinearVelocity();
     }
 
@@ -213,7 +212,7 @@ public class SwerveMechanism implements Logged {
      *
      * @return The robot's angular velocity.
      */
-    @Log.NT(key = "robot angular velocity")
+    @Logged(name = "robot angular velocity")
     public double getOmegaRadPerSec() {
         return m_modules.getOmegaRadPerSec();
     }
@@ -223,9 +222,9 @@ public class SwerveMechanism implements Logged {
      *
      * @return The robot's acceleration as a Vector2D.
      */
-    @Log.NT(key = "robot acceleration distance")
-    public double getAccelerationDistance() {
-        return new Vector2D(m_imu.getAccX(), m_imu.getAccY()).getDistance();
+    @Logged(name = "robot acceleration")
+    public Vector2D getRobotAcceleration() {
+        return new Vector2D(m_imu.getAccX(), m_imu.getAccY());
     }
 
     /**
@@ -233,7 +232,7 @@ public class SwerveMechanism implements Logged {
      *
      * @return The robot's speed as a ChassisSpeeds.
      */
-    @Log.NT(key = "neasured chassis speeds")
+    @Logged(name = "measured chassis speeds")
     public ChassisSpeeds getRobotChassisSpeeds() {
         return m_modules.getSwerveDriveKinematics().toChassisSpeeds(m_modules.getStates());
     }
@@ -243,7 +242,7 @@ public class SwerveMechanism implements Logged {
      *
      * @return The robot's desired speed as a ChassisSpeeds.
      */
-    @Log.NT(key = "desired chassis speeds")
+    @Logged(name = "desired chassis speeds")
     public ChassisSpeeds getDesiredChassisSpeeds() {
         return m_desiredChassisSpeeds;
     }
@@ -253,7 +252,7 @@ public class SwerveMechanism implements Logged {
      *
      * @return The robot's modules states.
      */
-    @Log.NT(key = "nodules states")
+    @Logged(name = "modules states")
     public SwerveModuleState[] getModulesStates() {
         return m_modules.getStates();
     }
@@ -263,7 +262,7 @@ public class SwerveMechanism implements Logged {
      *
      * @return The robot's desired modules states.
      */
-    @Log.NT(key = "modules desired states")
+    @Logged(name = "modules desired states")
     public SwerveModuleState[] getDesiredModulesStates() {
         return m_modules.getDesiredStates();
     }
@@ -294,15 +293,15 @@ public class SwerveMechanism implements Logged {
     /**
      * Runs a System Identification routine for a swerve module
      *
-     * @param module swerve module
-     * @param direction of the module (foward or reverse)
-     * @param swerveObject the object of the swerve mechanism
-     * @param sysidConfig routine of the sysid (eg. step voltage)
-     * @param option either angle or drive routine (diffrent motors!)
-     * @param dynamic is dynamically accelarating or not
+     * @param module       swerve module
+     * @param direction    of the module (forward or reverse)
+     * @param swerveSubsystem the object of the swerve mechanism
+     * @param sysidConfig  routine of the sysid (e.g. step voltage)
+     * @param option       either angle or drive routine (different motors!)
+     * @param dynamic      is dynamically accelerating or not
      * @return a command of the full routine
      */
-    public Command moduleSysidRoutineCommand(SysIdRoutineOption module, Direction direction, SubsystemBase swerveObject,
+    public Command moduleSysidRoutineCommand(SwerveModuleOption module, Direction direction, SubsystemBase swerveSubsystem,
                                              SysidConfig sysidConfig, SysIdRoutineOption option, boolean dynamic) {
         SwerveModule selectedModule;
 
@@ -316,12 +315,12 @@ public class SwerveMechanism implements Logged {
 
         if (option.equals(SysIdRoutineOption.ANGLE)) {
             if (dynamic)
-                return selectedModule.driveSysIdDynamic(direction, swerveObject, sysidConfig);
-            return selectedModule.driveSysIdQuas(direction, swerveObject, sysidConfig);
+                return selectedModule.driveSysIdDynamic(direction, swerveSubsystem, sysidConfig);
+            return selectedModule.driveSysIdQuas(direction, swerveSubsystem, sysidConfig);
         } else {
             if (dynamic)
-                return selectedModule.angleSysIdDynamic(direction, swerveObject, sysidConfig);
-            return selectedModule.angleSysIdQuas(direction, swerveObject, sysidConfig);
+                return selectedModule.angleSysIdDynamic(direction, swerveSubsystem, sysidConfig);
+            return selectedModule.angleSysIdQuas(direction, swerveSubsystem, sysidConfig);
         }
     }
 

@@ -1,5 +1,6 @@
 package frc.excalib.control.math;
 
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Rotation2d;
 
 /**
@@ -8,6 +9,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
  *
  * @author Itay
  */
+@Logged
 public class Vector2D {
     private double m_x, m_y;
 
