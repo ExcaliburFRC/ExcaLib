@@ -71,4 +71,4 @@ Need help? Reach us via:
 
 #### 🙏 Thanks for using ExcaLib, don't forget to give us a ⭐
 
-readme by @I-No-oNe
+The README provided by [@I-No-oNe](github.com/I-No-oNe)
