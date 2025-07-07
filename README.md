@@ -56,7 +56,7 @@ https://raw.githubusercontent.com/ExcaliburFRC/ExcaLib/pre-release/ExcaLib.json
 > [!IMPORTANT]
 > For further guidance, refer to the [WPILib Vendor Library Docs](https://docs.wpilib.org/en/stable/docs/software/vscode-overview/3rd-party-libraries.html).
 >
-> You **MUST** install the [`Monologue`](https://github.com/Mechanical-Advantage/monologue) library alongside ExcaLib.  
+> You **MUST** install the [`Monologue`](https://github.com/shueja/monologue) library alongside ExcaLib.  
 > Monologue enables annotation-based telemetry and logging, which is used extensively throughout ExcaLib.
 ---
 
