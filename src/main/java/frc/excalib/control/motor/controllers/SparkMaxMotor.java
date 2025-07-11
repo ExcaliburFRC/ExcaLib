@@ -129,4 +129,6 @@ public class SparkMaxMotor extends SparkMax implements Motor {
     private void configure() {
         super.configure(m_config, kResetSafeParameters, kPersistParameters);
     }
+
+    public SparkFlexConfig getConfig(){ return m_config;}
 }
