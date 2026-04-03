@@ -68,6 +68,16 @@ public class Arm extends Mechanism {
                 }, requirements);
     }
 
+    public double getPIDForAngle(DoubleSupplier setpointSupplier) {
+        double error = setpointSupplier.getAsDouble() - ANGLE_SUPPLIER.getAsDouble();
+        double dutyCycle = 0.02;
+        double velocitySetpoint = error / dutyCycle;
+        velocitySetpoint = velocityLimit.limit(velocitySetpoint);
+        double phyOutput = m_ks * Math.signum(velocitySetpoint) + m_kg * m_mass.getCenterOfMass().getX();
+        double pid = PIDController.calculate(ANGLE_SUPPLIER.getAsDouble(), setpointSupplier.getAsDouble());
+        return phyOutput + pid;
+    }
+
     /**
      * @param angle             the angle setpoint to go to (radians)
      * @param toleranceConsumer gets updated if the measurement is at tolerance.

@@ -17,14 +17,15 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.excalib.additional_utilities.AllianceUtils;
 import frc.excalib.additional_utilities.Elastic;
-import frc.excalib.control.gains.SysidConfig;
-import frc.excalib.control.imu.IMU;
-import frc.excalib.control.math.Vector2D;
 import frc.excalib.slam.mapper.Odometry;
+import frc.excalib.control.math.Vector2D;
+import frc.excalib.control.gains.SysidConfig;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import monologue.Logged;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
@@ -42,7 +43,8 @@ import static monologue.Annotations.Log;
  */
 public class Swerve extends SubsystemBase implements Logged {
     public final ModulesHolder modules;
-    private final IMU m_imu;
+    public final GyroIO gyroIO;
+    private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
     public final Odometry m_odometry;
     private ChassisSpeeds m_desiredChassisSpeeds = new ChassisSpeeds();
     private Trigger finishTrigger;
@@ -58,23 +60,26 @@ public class Swerve extends SubsystemBase implements Logged {
     );
     public final Field2d field = new Field2d();
 
+    // AdvantageKit logging inputs for Swerve (pose + chassis speeds)
+    private final SwerveInputsAutoLogged akInputs = new SwerveInputsAutoLogged();
+
     private Supplier<Rotation2d> angleSetpoint = Rotation2d::new;
     private Supplier<Translation2d> m_translationSetpoint = Translation2d::new;
+
 
 
     /**
      * A constructor that initialize the Swerve Subsystem
      *
      * @param modules         The ModulesHolder containing all swerve modules.
-     * @param imu             IMU sensor.
+     * @param gyroIO          GyroIO sensor.
      * @param initialPosition The initial position of the robot.
      */
     public Swerve(ModulesHolder modules,
-                  IMU imu,
+                  GyroIO gyroIO,
                   Pose2d initialPosition) {
         this.modules = modules;
-        this.m_imu = imu;
-        m_imu.setRotation(new Rotation2d(Math.PI / 2));
+        this.gyroIO = gyroIO;
 
         angleController.enableContinuousInput(-Math.PI, Math.PI);
         xController.setTolerance(0.01);
@@ -86,7 +91,7 @@ public class Swerve extends SubsystemBase implements Logged {
         this.m_odometry = new Odometry(
                 modules.getSwerveDriveKinematics(),
                 modules.getModulesPositions(),
-                m_imu::getZRotation,
+                () -> Rotation2d.fromRadians(gyroInputs.yawPositionRad),
                 initialPosition
         );
 
@@ -248,7 +253,7 @@ public class Swerve extends SubsystemBase implements Logged {
     }
 
     public Command resetAngleCommand() {
-        return new InstantCommand(m_imu::resetIMU).ignoringDisable(true);
+        return new InstantCommand(() -> gyroIO.getIMU().resetIMU()).ignoringDisable(true);
     }
 
     public Command coastCommand() {
@@ -284,7 +289,7 @@ public class Swerve extends SubsystemBase implements Logged {
      */
     @Log.NT(key = "Robot Rotation")
     public Rotation2d getRotation2D() {
-        return getPose2D().getRotation();
+        return Rotation2d.fromRadians(gyroInputs.yawPositionRad);
     }
 
     @Log.NT(key = "Angle Setpoint")
@@ -307,6 +312,24 @@ public class Swerve extends SubsystemBase implements Logged {
         return m_odometry.getRobotPose();
     }
 
+    @AutoLogOutput(key = "Swerve/PoseX")
+    @Log.NT
+    public double getPoseX() {
+        return getPose2D().getX();
+    }
+
+    @AutoLogOutput(key = "Swerve/PoseY")
+    @Log.NT
+    public double getPoseY() {
+        return getPose2D().getY();
+    }
+
+    @AutoLogOutput(key = "Swerve/PoseTheta")
+    @Log.NT
+    public double getPoseTheta() {
+        return getPose2D().getRotation().getRadians();
+    }
+
     /**
      * Gets the current velocity of the robot.
      *
@@ -321,9 +344,8 @@ public class Swerve extends SubsystemBase implements Logged {
      *
      * @return The robot's acceleration as a Vector2D.
      */
-    @Log.NT(key = "Acceleration")
     public double getAccelerationDistance() {
-        return new Vector2D(m_imu.getAccX(), m_imu.getAccY()).getDistance();
+        return new Vector2D(gyroInputs.accelX, gyroInputs.accelY).getDistance();
     }
 
     /**
@@ -341,6 +363,42 @@ public class Swerve extends SubsystemBase implements Logged {
         return m_desiredChassisSpeeds;
     }
 
+    @AutoLogOutput(key = "Swerve/MeasuredVx")
+    @Log.NT
+    public double getMeasuredVx() {
+        return getRobotRelativeSpeeds().vxMetersPerSecond;
+    }
+
+    @AutoLogOutput(key = "Swerve/MeasuredVy")
+    @Log.NT
+    public double getMeasuredVy() {
+        return getRobotRelativeSpeeds().vyMetersPerSecond;
+    }
+
+    @AutoLogOutput(key = "Swerve/MeasuredOmega")
+    @Log.NT
+    public double getMeasuredOmega() {
+        return getRobotRelativeSpeeds().omegaRadiansPerSecond;
+    }
+
+    @AutoLogOutput(key = "Swerve/DesiredVx")
+    @Log.NT
+    public double getDesiredVx() {
+        return getDesiredChassisSpeeds().vxMetersPerSecond;
+    }
+
+    @AutoLogOutput(key = "Swerve/DesiredVy")
+    @Log.NT
+    public double getDesiredVy() {
+        return getDesiredChassisSpeeds().vyMetersPerSecond;
+    }
+
+    @AutoLogOutput(key = "Swerve/DesiredOmega")
+    @Log.NT
+    public double getDesiredOmega() {
+        return getDesiredChassisSpeeds().omegaRadiansPerSecond;
+    }
+
     /// /    public double distanceFromReefCenter() {
     /// /        return AllianceUtils.isBlueAlliance() ?
     /// /                BLUE_REEF_CENTER.getDistance(getPose2D().getTranslation()) :
@@ -349,6 +407,14 @@ public class Swerve extends SubsystemBase implements Logged {
 
     public Command stopCommand() {
         return driveCommand(() -> new Vector2D(0, 0), () -> 0, () -> true);
+    }
+
+    /**
+     * Test command to drive the robot straight at 1.0 m/s.
+     * Useful for verifying simulation physics without a controller.
+     */
+    public Command driveStraightCommand() {
+        return driveCommand(() -> new Vector2D(1.0, 0), () -> 0, () -> true).withName("Drive Straight Test");
     }
 
     /**
@@ -494,14 +560,58 @@ public class Swerve extends SubsystemBase implements Logged {
     @Override
     public void periodic() {
         modules.periodic();
+        
+        gyroIO.updateInputs(gyroInputs);
+        org.littletonrobotics.junction.Logger.processInputs("Swerve/Gyro", gyroInputs);
+
         field.setRobotPose(getPose2D());
         updateOdometry();
+        
+        /* 
+         * Commented out vision-based reset to prevent perpetual "teleportation" to vision pose.
+         * Vision should either be added via addVisionMeasurement or only used for the first init.
         Pose2d arrPose = getAuroraPose2d();
         if (!((arrPose.getX() == 0) && (arrPose.getY() == 0) && (arrPose.getRotation().getRadians() == 0))) {
             m_odometry.resetOdometry(modules.getModulesPositions(), getAuroraPose2d());
         }
+        */
+        // Populate AdvantageKit inputs and pass them to the Logger as a grouped input
+        // object. This gives a single table in the .wpilog and AdvantageScope called
+        // "Swerve" containing pose + measured/desired chassis speeds.
+        akInputs.poseX = getPose2D().getX();
+        akInputs.poseY = getPose2D().getY();
+        akInputs.poseTheta = getPose2D().getRotation().getRadians();
 
+        ChassisSpeeds measured = getRobotRelativeSpeeds();
+        akInputs.measuredVx = measured.vxMetersPerSecond;
+        akInputs.measuredVy = measured.vyMetersPerSecond;
+        akInputs.measuredOmega = measured.omegaRadiansPerSecond;
 
+        ChassisSpeeds desired = getDesiredChassisSpeeds();
+        akInputs.desiredVx = desired.vxMetersPerSecond;
+        akInputs.desiredVy = desired.vyMetersPerSecond;
+        akInputs.desiredOmega = desired.omegaRadiansPerSecond;
+
+        org.littletonrobotics.junction.Logger.processInputs("Swerve", akInputs);
+
+        // === SWERVE CHASSIS DIAGNOSTICS (~1/sec) ===
+        if (Math.random() < 0.02) {
+            System.out.println("===== SWERVE CHASSIS DIAGNOSTICS =====");
+            System.out.printf("  Gyro Yaw:       %.3f rad (%.1f deg)%n", gyroInputs.yawPositionRad, Math.toDegrees(gyroInputs.yawPositionRad));
+            System.out.printf("  Desired:        Vx=%.2f  Vy=%.2f  Omega=%.2f%n", desired.vxMetersPerSecond, desired.vyMetersPerSecond, desired.omegaRadiansPerSecond);
+            System.out.printf("  Measured:       Vx=%.2f  Vy=%.2f  Omega=%.2f%n", measured.vxMetersPerSecond, measured.vyMetersPerSecond, measured.omegaRadiansPerSecond);
+            System.out.printf("  Pose:           X=%.2f  Y=%.2f  Theta=%.1f deg%n", akInputs.poseX, akInputs.poseY, Math.toDegrees(akInputs.poseTheta));
+            edu.wpi.first.math.kinematics.SwerveModuleState[] states = modules.logStates();
+            for (int i = 0; i < states.length; i++) {
+                System.out.printf("  Module %d:       speed=%.2f m/s  angle=%.1f deg%n", i, states[i].speedMetersPerSecond, states[i].angle.getDegrees());
+            }
+            System.out.println("======================================");
+        }
+
+        // Standard AdvantageKit Logging Pattern for Swerve States (AdvantageScope)
+        org.littletonrobotics.junction.Logger.recordOutput("SwerveStates/Measured", modules.logStates());
+        org.littletonrobotics.junction.Logger.recordOutput("SwerveStates/Setpoints", modules.logSetPointStates());
+        org.littletonrobotics.junction.Logger.recordOutput("Odometry/Robot", getPose2D());
     }
 
     @Log.NT

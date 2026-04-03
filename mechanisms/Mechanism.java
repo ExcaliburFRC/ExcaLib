@@ -33,6 +33,10 @@ public class Mechanism implements Logged {
         m_DEFAULT_IDLE_STATE = m_motor.getIdleState();
     }
 
+    public Motor getMotor() {
+        return m_motor;
+    }
+
     /**
      * @param output set the duty cycle output
      */

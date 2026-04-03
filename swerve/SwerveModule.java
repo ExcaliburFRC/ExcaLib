@@ -36,13 +36,23 @@ public class SwerveModule implements Logged {
     private final Vector2D m_setPoint = new Vector2D(0, 0);
     private final SwerveModulePosition m_swerveModulePosition;
 
+    private final SwerveModuleIO io;
+    private final SwerveModuleIOInputsAutoLogged inputs = new SwerveModuleIOInputsAutoLogged();
+    public final int index;
+
     /**
      * A constructor for the SwerveModule
      */
-    public SwerveModule(Motor driveMotor, Motor rotationMotor, Gains angleGains, Gains velocityGains,
-                        double PIDTolerance, Translation2d moduleLocation, DoubleSupplier angleSupplier,
+    public SwerveModule(SwerveModuleIO io, int index, Gains angleGains, Gains velocityGains,
+                        double PIDTolerance, Translation2d moduleLocation,
                         double maxVel, double velocityConversionFactor, double positionConversionFactor,
                         double rotationVelocityConversionFactor, boolean invert) {
+        this.io = io;
+        this.index = index;
+
+        Motor driveMotor = io.getDriveMotor();
+        Motor rotationMotor = io.getTurnMotor();
+        DoubleSupplier angleSupplier = io.getAbsoluteEncoder();
         if (invert)
             driveMotor.setInverted(REVERSE);
         else
@@ -237,6 +247,9 @@ public class SwerveModule implements Logged {
     }
 
     public void periodic() {
+        io.updateInputs(inputs);
+        org.littletonrobotics.junction.Logger.processInputs("Swerve/Module" + index, inputs);
+
         m_swerveModulePosition.distanceMeters = m_driveWheel.logPosition();
         m_swerveModulePosition.angle = m_turret.getPosition();
     }
