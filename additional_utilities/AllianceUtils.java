@@ -87,11 +87,28 @@ public class AllianceUtils {
             this.pose = new Pose2d(translation, rotation);
         }
 
-        public AlliancePose(double degrees) {
-            this.pose = new Pose2d(0, 0, Rotation2d.fromDegrees(degrees));
-        }
-
         public Pose2d get() {
             return toAlliancePose(pose);
         }
-    }}
+    }
+
+    public static class AllianceTranslation {
+        private final Translation2d translation2d;
+
+        public AllianceTranslation(double x, double y) {
+            this.translation2d = new Translation2d(x, y);
+        }
+
+        public AllianceTranslation() {
+            this.translation2d = new Translation2d();
+        }
+
+        public AllianceTranslation(Translation2d translation) {
+            this.translation2d = translation;
+        }
+
+        public Translation2d get() {
+            return toAlliancePose(translation2d);
+        }
+    }
+}
