@@ -12,17 +12,17 @@ import frc.excalib.control.gains.Gains;
 import frc.excalib.control.gains.SysidConfig;
 import frc.excalib.control.limits.ContinuousSoftLimit;
 import frc.excalib.control.math.Vector2D;
-import frc.excalib.control.motor.controllers.Motor;
-import frc.excalib.mechanisms.fly_wheel.FlyWheel;
-import frc.excalib.mechanisms.turret.Turret;
+import frc.excalib.hardware.motor.Motor;
+import frc.excalib.mechanisms.FlyWheel;
+import frc.excalib.mechanisms.Turret;
 import monologue.Logged;
 
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-import static frc.excalib.control.motor.motor_specs.DirectionState.FORWARD;
-import static frc.excalib.control.motor.motor_specs.DirectionState.REVERSE;
-import static frc.excalib.control.motor.motor_specs.IdleState.BRAKE;
+import static frc.excalib.hardware.motor.DirectionState.FORWARD;
+import static frc.excalib.hardware.motor.DirectionState.REVERSE;
+import static frc.excalib.hardware.motor.IdleState.BRAKE;
 
 /**
  * A class representing a swerve module

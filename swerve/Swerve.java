@@ -18,12 +18,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.excalib.additional_utilities.AllianceUtils;
-import frc.excalib.additional_utilities.Elastic;
+import frc.excalib.util.AllianceUtils;
+import frc.excalib.util.Elastic;
 import frc.excalib.control.gains.SysidConfig;
-import frc.excalib.control.imu.IMU;
+import frc.excalib.hardware.imu.IMU;
 import frc.excalib.control.math.Vector2D;
-import frc.excalib.slam.mapper.Odometry;
+import frc.excalib.localization.Odometry;
 import monologue.Logged;
 import org.json.simple.parser.ParseException;
 
@@ -33,8 +33,7 @@ import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import static edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets.kTextView;
-import static frc.excalib.additional_utilities.Elastic.Notification.NotificationLevel.WARNING;
-import static frc.robot.Constants.SwerveConstants.*;
+import static frc.excalib.util.Elastic.Notification.NotificationLevel.WARNING;
 import static monologue.Annotations.Log;
 
 /**
@@ -49,17 +48,14 @@ public class Swerve extends SubsystemBase implements Logged {
     private Rotation2d pi = new Rotation2d(Math.PI);
 
     private final SwerveDriveKinematics m_swerveDriveKinematics;
-    private final PIDController angleController = new PIDController(ANGLE_PID_GAINS.kp, ANGLE_PID_GAINS.ki, ANGLE_PID_GAINS.kd);
-    private final PIDController xController = new PIDController(
-            TRANSLATION_PID_GAINS.kp, TRANSLATION_PID_GAINS.ki, TRANSLATION_PID_GAINS.kd
-    );
-    private final PIDController yController = new PIDController(
-            TRANSLATION_PID_GAINS.kp, TRANSLATION_PID_GAINS.ki, TRANSLATION_PID_GAINS.kd
-    );
+    private final PIDController angleController;
+    private final PIDController xController;
+    private final PIDController yController;
     public final Field2d field = new Field2d();
 
     private Supplier<Rotation2d> angleSetpoint = Rotation2d::new;
     private Supplier<Translation2d> m_translationSetpoint = Translation2d::new;
+    private final SwerveConfig m_config;
 
 
     /**
@@ -68,13 +64,20 @@ public class Swerve extends SubsystemBase implements Logged {
      * @param modules         The ModulesHolder containing all swerve modules.
      * @param imu             IMU sensor.
      * @param initialPosition The initial position of the robot.
+     * @param config          The configuration for the Swerve drive.
      */
     public Swerve(ModulesHolder modules,
                   IMU imu,
-                  Pose2d initialPosition) {
+                  Pose2d initialPosition,
+                  SwerveConfig config) {
         this.modules = modules;
         this.m_imu = imu;
+        this.m_config = config;
         m_imu.setRotation(new Rotation2d(Math.PI / 2));
+
+        this.angleController = new PIDController(config.angleGains.kp, config.angleGains.ki, config.angleGains.kd);
+        this.xController = new PIDController(config.translationGains.kp, config.translationGains.ki, config.translationGains.kd);
+        this.yController = new PIDController(config.translationGains.kp, config.translationGains.ki, config.translationGains.kd);
 
         angleController.enableContinuousInput(-Math.PI, Math.PI);
         xController.setTolerance(0.01);
@@ -202,7 +205,7 @@ public class Swerve extends SubsystemBase implements Logged {
     public Command driveToPoseCommand(Pose2d setPoint) {
         return AutoBuilder.pathfindToPose(
                 setPoint,
-                MAX_PATH_CONSTRAINTS
+                m_config.maxPathConstraints
         ).withName("Pathfinding Command");
     }
 
@@ -243,7 +246,7 @@ public class Swerve extends SubsystemBase implements Logged {
 
         return AutoBuilder.pathfindThenFollowPath(
                 path,
-                MAX_PATH_CONSTRAINTS
+                m_config.maxPathConstraints
         );
     }
 
@@ -372,8 +375,8 @@ public class Swerve extends SubsystemBase implements Logged {
                 this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
                 (speeds, feedforwards) -> driveRobotRelativeChassisSpeeds(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
                 new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-                        TRANSLATION_PID_PP_CONSTANTS, // Translation PID constants
-                        ANGLE_PID_PP_CONSTANTS // Rotation PID constants
+                        m_config.translationPPConstants, // Translation PID constants
+                        m_config.anglePPConstants // Rotation PID constants
                 ),
                 config,
                 () -> {

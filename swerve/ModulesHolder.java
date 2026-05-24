@@ -9,12 +9,10 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.excalib.control.math.Vector2D;
 import monologue.Logged;
+import static monologue.Annotations.*;
 
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
-
-import static frc.robot.Constants.SwerveConstants.MAX_VEL;
-import static monologue.Annotations.*;
 
 public class ModulesHolder implements Logged {
     public final SwerveModule m_frontLeft;
@@ -25,6 +23,7 @@ public class ModulesHolder implements Logged {
     private final SwerveDriveKinematics m_swerveDriveKinematics;
 
     private final SwerveModulePosition[] m_modulePositions;
+    private final double m_maxVel;
 
     /**
      * A constructor that initialize the ModulesHolder.
@@ -33,16 +32,19 @@ public class ModulesHolder implements Logged {
      * @param frontRight A SwerveModule represents the front-right module.
      * @param backLeft   A SwerveModule represents the back-left module.
      * @param backRight  A SwerveModule represents the back-right module.
+     * @param maxVel     The maximum speed of the swerve modules.
      */
     public ModulesHolder(
             SwerveModule frontLeft,
             SwerveModule frontRight,
             SwerveModule backLeft,
-            SwerveModule backRight) {
+            SwerveModule backRight,
+            double maxVel) {
         this.m_frontLeft = frontLeft;
         this.m_frontRight = frontRight;
         this.m_backLeft = backLeft;
         this.m_backRight = backRight;
+        this.m_maxVel = maxVel;
 
         // Initialize SwerveDriveKinematics once since module locations are constant
         this.m_swerveDriveKinematics = new SwerveDriveKinematics(
@@ -165,7 +167,7 @@ public class ModulesHolder implements Logged {
     }
 
     public void setModulesStates(SwerveModuleState[] states) {
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_VEL);
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, m_maxVel);
         m_frontLeft.setDesiredState(states[0]);
         m_frontRight.setDesiredState(states[1]);
         m_backLeft.setDesiredState(states[2]);
